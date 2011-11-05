@@ -11,5 +11,14 @@ function z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q
 %
 % z: 2xP points
 
+C_q_world_IMU=quaternionToMatrix(q_world_IMU);
+C_q_IMU_camera=quaternionToMatrix(q_IMU_camera);
+
+p_IMU_pts=C_q_world_IMU*bsxfun(@minus,p_world_pts,p_world_IMU);
+p_camera_pts=C_q_IMU_camera*bsxfun(@minus,p_IMU_pts,p_IMU_camera);
+
+p_camera_pts_proj=K*p_camera_pts;
+z=bsxfun(@rdivide,p_camera_pts_proj(1:2,:),p_camera_pts_proj(3,:));
+
 
 end
