@@ -18,8 +18,8 @@ z=zeros(2*P, N);
 
 for i=1:N
 
-C_q_world_IMU=quaternionToMatrix(q_world_IMU(:,i));
-C_q_IMU_camera=quaternionToMatrix(q_IMU_camera(:,i));
+C_q_world_IMU=quaternion2matrix(q_world_IMU(:,i));
+C_q_IMU_camera=quaternion2matrix(q_IMU_camera(:,i));
 
 p_IMU_pts=C_q_world_IMU*bsxfun(@minus,p_world_pts,p_world_IMU(:,i));
 p_camera_pts=C_q_IMU_camera*bsxfun(@minus,p_IMU_pts,p_IMU_camera(:,i));
