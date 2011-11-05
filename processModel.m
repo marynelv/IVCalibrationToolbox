@@ -8,7 +8,8 @@ function x_k=processModel(x_kminus1, timestep, usetranslationonly)
 %      sigma points
 %      if translation model is not used: 26x1 state vector or 26 x 2N+1
 %      sigma points
-
+%
+% NOTE: The full x_k vector is defined in equation (13), page 9
 if usetranslationonly
     x_k=processModelTranslation(x_kminus1(1:3,:), x_kminus1(8:10,:), timestep);
     
