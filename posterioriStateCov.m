@@ -9,6 +9,11 @@
 %   X_plus      Nx1 - posteriori state vector
 %   P_plus      NxN - posteriori covariance matrix
 %
+% The measurements Z and Z_pred must have their values ordered by
+% component. For the camera projection case, each vector should have all
+% x-values first and all y-values second. This means that for n landmarks,
+% the size of Z and Z_pred would be (nx2)x1.
+% 
 % NOTE: Implementation of equations (78) and (79), page 25
 function [X_plus, P_plus] = ...
     posterioriStateCov(X_minus, K, Z, Z_pred, P_minus, P_zz)
