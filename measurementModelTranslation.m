@@ -2,23 +2,33 @@ function z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q
 
 % z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q_IMU_camera, p_world_pts, K)
 %
-% p_world_IMU: 3x1 vector
-% p_IMU_camera: 3x1 vector
-% q_world_IMU: 4x1 vector (unit quat)
-% q_IMU_camera: 4x1 vector (unit quat)
+% p_world_IMU: 3x1 vector or 3x2N+1 matrix
+% p_IMU_camera: 3x1 vector or 3x2N+1 matrix
+% q_world_IMU: 4x1 vector (unit quat) or 4x2N+1 matrix
+% q_IMU_camera: 4x1 vector (unit quat) or 4x2N+1 matrix
 % p_world_pts: 3xP points
 % K: 3x3 matrix
 %
-% z: 2xP points
+% z: 2P x 1 vector or 2P x (2N+1) matrix
 
-C_q_world_IMU=quaternionToMatrix(q_world_IMU);
-C_q_IMU_camera=quaternionToMatrix(q_IMU_camera);
+P=size(p_world_pts,2);
+N=size(p_world_IMU,1);
 
-p_IMU_pts=C_q_world_IMU*bsxfun(@minus,p_world_pts,p_world_IMU);
-p_camera_pts=C_q_IMU_camera*bsxfun(@minus,p_IMU_pts,p_IMU_camera);
+z=zeros(2*P, N);
+
+for i=1:N
+
+C_q_world_IMU=quaternionToMatrix(q_world_IMU(:,i));
+C_q_IMU_camera=quaternionToMatrix(q_IMU_camera(:,i));
+
+p_IMU_pts=C_q_world_IMU*bsxfun(@minus,p_world_pts,p_world_IMU(:,i));
+p_camera_pts=C_q_IMU_camera*bsxfun(@minus,p_IMU_pts,p_IMU_camera(:,i));
 
 p_camera_pts_proj=K*p_camera_pts;
-z=bsxfun(@rdivide,p_camera_pts_proj(1:2,:),p_camera_pts_proj(3,:));
+zi=bsxfun(@rdivide,p_camera_pts_proj(1:2,:),p_camera_pts_proj(3,:));
+zi=zi';
+z(:,i)=zi(:);
 
+end
 
 end
