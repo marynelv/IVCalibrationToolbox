@@ -13,7 +13,7 @@
 \usepackage{color}
 \usepackage{subfigure}
 \usepackage{hyperref}
-
+\newcommand{\bb}[1]{\mathbf{#1}}
 
 \begin{document}
 
@@ -22,6 +22,19 @@
 \section{Introduction}
 
 \section{UKF Formulation}
+
+In our system, we will ultimately estimate the world space position and orientation of the IMU, $\bb{p}_I^W(t)$ and ${\overline{q}}_I^W(t)$, the velocity of the IMU-camera setup in world space, $\bb{v}^W$, the biases for the gyroscope and accelerometer, $\bb{b}_g(t)$ and $\bb{b}_a(t)$, the gravity vector, $\bb{g}^W(t)$, and, of course, the position and orientation of the camera with respect to the IMU, $\bb{p}_C^I$ and $\overline{q}_C^I$ (i.e. the translation and rotation between the devices). The latter two are the calibration parameters we intend to estimate, and they do not change over time. The state vector, $\bb{x}_s(t)$ has $26 \times 1$ variables.
+\begin{equation}
+\bb{x}_t=\begin{bmatrix} (\bb{p}_I^W(t))^T & ({\overline{q}}_I^W(t))^T  & (\bb{v}^W)^T  & (\bb{b}_g(t))^T &  (\bb{b}_a(t))^T & (\bb{g}^W(t))^T  & (\bb{p}_C^I)^T & (\overline{q}_C^I)^T\end{bmatrix}
+\end{equation}
+
+The process model uses IMU measurements as control inputs along the vein of Kelly and Sukhatme (ref). The accelerometer and gyroscope biases are modeled as Gaussian random walk processes driven by zero mean noise $\bb{n}_{aw}$ and $\bb{n}_{gw}$, with covariances $\bb{Q}_{aw}$ and $\bb{Q}_{gw}$, while their additive noise is modeled by zero mean noise $\bb{n}_g$ and $\bb{n}_a$, with covariances $\bb{Q}_a$ and $\bb{Q}_g$. The differential equations describing the state evolution are:
+
+\begin{align}
+\bb{\dot{p}}_I^W &=\bb{v}^W
+\dot{\overline{q}}_I^W=\frac{1}{2}\begin{bmatrix}0 & -(\omega^I)^T \\ \omega^I & -[ \omega^I ]_{\times} \end{bmatrix}
+\end{align}
+
 
 \section{Tests}
 
