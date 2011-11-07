@@ -47,6 +47,12 @@ The measured acceleration and gravity are given as
 \bb{a}_m&=\bb{C}^T(\overline{q}_I^W)(\bb{a}^W-\bb{g}^W)+\bb{b}_a+\bb{n}_a
 \end{align}
 
+The entire process noise mean and covariance are
+
+\begin{align}
+\bb{n}=\begin{bmatrix} \bb{n}_{gw} \\ \bb{n}_{aw} \\ \bb{n}_g\\ \bb{n}_a \end{bmatrix}, \bb{Q}=\begin{bmatrix} \bb{Q}_{gw} & & & \\ & \bb{Q}_{aw} & & \\ & & \bb{Q}_g & \\ & & & \bb{Q}_a \end{bmatrix}
+\end{align}
+
 During measurement, the camera images the world points, $\bb{p}_{l_i}^W$ (which in our current system, we assume are known). To take the world points from the world coordinate system to the camera's coordinate system $\bb{p}_{l_i}^C$, we apply the rotation and orientation of the IMU in the world coordinate system, and those of the camera with respect to the IMU:
 
 \begin{align}
@@ -56,7 +62,7 @@ During measurement, the camera images the world points, $\bb{p}_{l_i}^W$ (which 
 We model the projected points $u_i$ and $v_i$ in the camera's coordinate system with additive measurement noise. 
 
 \begin{align}
-\bb{z}_i&=\begin{bmatrix} u_i \\ v_i \end{bmatrix}=\begin{bmatrix} x_i' \\ y_i' \end{bmatrix}+\eta_i \nonumber\\
+\bb{z}_i=\begin{bmatrix} u_i \\ v_i \end{bmatrix}&=\begin{bmatrix} x_i' \\ y_i' \end{bmatrix}+\eta_i \nonumber\\
 \begin{bmatrix} x_i' \\ y_i' \\ 1 \end{bmatrix} & \equiv K\begin{bmatrix} x_i \\ y_i  \\ z_i \end{bmatrix}
 \end{align}
 
