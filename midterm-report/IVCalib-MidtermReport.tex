@@ -31,9 +31,35 @@ In our system, we will ultimately estimate the world space position and orientat
 The process model uses IMU measurements as control inputs along the vein of Kelly and Sukhatme (ref). The accelerometer and gyroscope biases are modeled as Gaussian random walk processes driven by zero mean noise $\bb{n}_{aw}$ and $\bb{n}_{gw}$, with covariances $\bb{Q}_{aw}$ and $\bb{Q}_{gw}$, while their additive noise is modeled by zero mean noise $\bb{n}_g$ and $\bb{n}_a$, with covariances $\bb{Q}_a$ and $\bb{Q}_g$. The differential equations describing the state evolution are:
 
 \begin{align}
-\bb{\dot{p}}_I^W &=\bb{v}^W
-\dot{\overline{q}}_I^W=\frac{1}{2}\begin{bmatrix}0 & -(\omega^I)^T \\ \omega^I & -[ \omega^I ]_{\times} \end{bmatrix}
+\dot{\bb{p}}_I^W &=\bb{v}^W \nonumber\\ 
+\dot{\overline{q}}_I^W&=\frac{1}{2}\begin{bmatrix}0 & -(\omega^I)^T \\ \omega^I & -[ \omega^I ]_{\times} \end{bmatrix}  \nonumber\\
+\dot{\bb{v}}^W &=\bb{a}^W  \nonumber\\
+\dot{\bb{g}}^W &=\bb{0}_{3 \times 1}  \nonumber\\
+\dot{\bb{b}}_g&=\bb{n}_{gw}  \nonumber\\
+\dot{\bb{b}}_a&=\bb{n}_{aw}  \nonumber\\
+\dot{\bb{p}}_C^I&=\bb{0}_{3 \times 1} \nonumber\\
+\dot{\overline{q}}_C^I&=\bb{0}_{4 \times 1}
 \end{align}
+
+The measured acceleration and gravity are given as
+\begin{align}
+\omega_m&=\omega^I+\bb{b}_g+\bb{n}_g \nonumber \\
+\bb{a}_m&=\bb{C}^T(\overline{q}_I^W)(\bb{a}^W-\bb{g}^W)+\bb{b}_a+\bb{n}_a
+\end{align}
+
+During measurement, the camera images the world points, $\bb{p}_{l_i}^W$ (which in our current system, we assume are known). To take the world points from the world coordinate system to the camera's coordinate system $\bb{p}_{l_i}^C$, we apply the rotation and orientation of the IMU in the world coordinate system, and those of the camera with respect to the IMU:
+
+\begin{align}
+\bb{p}_{l_i}^C=(\bb{C}(\overline{q}_C^I))^T \left((\bb{C}(\overline{q}_I^W))^T \left(\bb{p}_{l_i}^W-\bb{p}_I^W\right) -\bb{p}_C^I \right)
+\end{align}
+
+We model the projected points $u_i$ and $v_i$ in the camera's coordinate system with additive measurement noise. 
+
+\begin{align}
+\bb{z}_i&=\begin{bmatrix} u_i \\ v_i \end{bmatrix}=\begin{bmatrix} x_i' \\ y_i' \end{bmatrix}+\eta_i \nonumber\\
+\begin{bmatrix} x_i' \\ y_i' \\ 1 \end{bmatrix} & \equiv K\begin{bmatrix} x_i \\ y_i  \\ z_i \end{bmatrix}
+\end{align}
+
 
 
 \section{Tests}
