@@ -101,7 +101,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             Pzz = Pzz + Weightsc(k)*measurementDiff(:,k)*measurementDiff(:,k)';
         end
         
-        K = Pxz*inv(Pzz+R);
+        K = Pxz/(Pzz+R);
         innovation = z - z_pred;
         x_plus = x + K*innovation;
         P_plus = P - K*Pzz*K';
