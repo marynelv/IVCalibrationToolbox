@@ -42,8 +42,8 @@ w = repmat([0 0 -.3]', 1, length(t));
 % w = zeros(3, length(t));
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
-euler_i_c = [0 0 0];
-p_i_c = [ 0 0 0]; % Translation from IMU to camera frame in meters
+euler_i_c = [0 0 0]';
+p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
 
 % std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
 std_dev_noise_accel = 0;
@@ -64,7 +64,8 @@ pts_max = 10;
 
 %% Derivated values from setup parameters
 T_i_c = rotx(euler_i_c(1))*roty(euler_i_c(2))*rotz(euler_i_c(3));
-T_i_c(1:3,4) = p_i_c';
+T_i_c(1:3,4) = p_i_c;
+q_i_c = matrix2quaternion(T_i_c);
 
 pts_w = pts_min + (pts_max-pts_min).*rand(3,numPoints);
 pts_w = [pts_w; ones(1, numPoints)];
