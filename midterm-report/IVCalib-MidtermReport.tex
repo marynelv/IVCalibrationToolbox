@@ -22,10 +22,12 @@
 \section{Introduction}
 
 \section{UKF Formulation}
+\label{sec:UKF}
 
 In our system, we will ultimately estimate the world space position and orientation of the IMU, $\bb{p}_I^W(t)$ and ${\overline{q}}_I^W(t)$, the velocity of the IMU-camera setup in world space, $\bb{v}^W$, the biases for the gyroscope and accelerometer, $\bb{b}_g(t)$ and $\bb{b}_a(t)$, the gravity vector, $\bb{g}^W(t)$, and, of course, the position and orientation of the camera with respect to the IMU, $\bb{p}_C^I$ and $\overline{q}_C^I$ (i.e. the translation and rotation between the devices). The latter two are the calibration parameters we intend to estimate, and they do not change over time. The state vector, $\bb{x}_s(t)$ has $26 \times 1$ variables.
 \begin{equation}
 \bb{x}_t=\begin{bmatrix} (\bb{p}_I^W(t))^T & ({\overline{q}}_I^W(t))^T  & (\bb{v}^W)^T  & (\bb{b}_g(t))^T &  (\bb{b}_a(t))^T & (\bb{g}^W(t))^T  & (\bb{p}_C^I)^T & (\overline{q}_C^I)^T\end{bmatrix}
+\label{eq:UKF-state}
 \end{equation}
 
 The process model uses IMU measurements as control inputs along the vein of Kelly and Sukhatme (ref). The accelerometer and gyroscope biases are modeled as Gaussian random walk processes driven by zero mean noise $\bb{n}_{aw}$ and $\bb{n}_{gw}$, with covariances $\bb{Q}_{aw}$ and $\bb{Q}_{gw}$, while their additive noise is modeled by zero mean noise $\bb{n}_g$ and $\bb{n}_a$, with covariances $\bb{Q}_a$ and $\bb{Q}_g$. The differential equations describing the state evolution are:
@@ -69,6 +71,39 @@ We model the projected points $u_i$ and $v_i$ in the camera's coordinate system 
 
 
 \section{Tests}
+
+We decided to implement the filter progressively given the complexity
+of the state space. We considered a reduced number of unknowns and a
+very simple model at the beginning. The following subsections detail
+our progress towards a complete toolbox for sensor-to-sensor
+calibration.
+
+\subsection{Estimating rigid body translation}
+
+Our first simulation test consisted on effectively estimating the
+position in 3D space of the rigid body sensor suite. We assumed our
+inertial sensor was able to give us velocity instead of acceleration,
+and that the body did not rotate throughout the simulation. No bias
+or gravity were considered in the model.
+
+We generated a path for the sensor suite with constant linear
+velocity, and altered ground truth velocity with zero-mean Gaussian
+noise. Our state vector had a dimensionality of $3$ in this test,
+instead of $26$ as in (\ref{eq:UKF-state}). The process noise
+covariance was a $3 \times 3$ diagonal matrix.
+\begin{equation}
+\bb{x}_t=\begin{bmatrix} p_{I_x}^W(t) & p_{I_y}^W(t) & p_{I_z}^W(t) \end{bmatrix} 
+\hspace{4em}
+Q = \begin{bmatrix} 
+\sigma_x^2 & 0 & 0\\ 
+0 & \sigma_y^2 & 0\\ 
+0 & 0 & \sigma_z^2
+\end{bmatrix} 
+\label{eq:TranslationTest-stateVec}
+\end{equation}
+
+We automatically generated landmarks by uniformly sampling
+3D points in a cube, and projected them 
 
 \section{Future work}
 
