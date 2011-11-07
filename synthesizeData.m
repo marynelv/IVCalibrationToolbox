@@ -62,6 +62,8 @@ pts_min = -10;
 pts_max = 10;
 std_pixel_noise = 0.1;
 
+std_v_w = 0;
+
 
 %% Derivated values from setup parameters
 T_i_c = rotx(euler_i_c(1))*roty(euler_i_c(2))*rotz(euler_i_c(3));
@@ -215,6 +217,9 @@ for i = 1:length(t)
   observed_pts_c(:,i) = pixels(:);
 end
 
-noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
 camData = zeros(length(t), 3);
 camData(:,3) = t;
+
+%% Create noisy measurements
+noisy_v_w = v_w + std_v_w*randn(size(v_w));
+noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));

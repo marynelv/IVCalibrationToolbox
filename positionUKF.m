@@ -18,6 +18,8 @@ ukf_beta = 2;
 %% n: process noise
 
 %% Q: process noise covariance matrix
+% Q = std_v_w^2 * eye(3);
+Q = 0.1^2 *eye(3);
 
 %% z: measurements
 % See section 4.3 Measurement Model on page 11
@@ -64,9 +66,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         nowTime = imuTime;
         dt = nowTime - pastTime;
         
-        u = v_w(1:3, i);   
+        u = noisy_v_w(1:3, i);   
         
-        [x P] = predictUFK(x, u, dt, P, ukf_N, ukf_alpha, ukf_beta);
+
+        [x P] = predictUFK(x, u, dt, P, Q, ukf_alpha, ukf_beta);
         
         i = i + 1;        
     else        
