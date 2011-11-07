@@ -13,9 +13,10 @@
 %   R       MxM - measurement covariance matrix   
 %
 % The measurements Z and Z_pred must have their values ordered by
-% component. For the camera projection case, each vector should have all
-% x-values first and all y-values second. This means that for n landmarks,
-% the size of Z and Z_pred would be (nx2)x1.
+% landmark. Each vector should have the x-value and the y-value for the 
+% first landmark at the beginning, followed by (x,y) of the second landmark 
+% and so on ... This means that for n landmarks, the size of Z and Z_pred 
+% would be (nx2)x1.
 %
 % NOTE: Implementation of equations (75) through (79), page 25
 function [X_plus, P_plus] = ...
