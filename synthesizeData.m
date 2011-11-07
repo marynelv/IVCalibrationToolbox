@@ -143,42 +143,6 @@ end
 T_w_i{i} = quaternion2matrix(q_w_i(:,i));
 T_w_i{i}(1:3,4) = p_w(:,i);
 
-%% Plot static results
-% figure, plot(t, a_i(1,:), t, a_i(2,:), t, a_i(3,:));
-% figure, plot(t,v_w);
-% figure, plot(t,p_w);
-
-% figure, plot3(a_w(1,:), a_w(2,:), a_w(3,:));
-% figure, plot3(v_w(1,:), v_w(2,:), v_w(3,:));
-% figure, plot3(p_w(1,:), p_w(2,:), p_w(3,:));
-
-
-%% Movie like plot
-if plotFlag
-    for i = 1:length(t)-1
-        
-        if (mod(t(i), 0.5) == 0)          
-            figure(9), plot3(p_w(1,:), p_w(2,:), p_w(3,:));
-            
-            curR_w_c = T_w_i{i}*T_i_c;
-            cam_coor = curR_w_c*[x_i y_i z_i; ones(1,3)];
-            
-            hold on;
-            plot3([curR_w_c(1,4) cam_coor(1,1)], [curR_w_c(2,4) cam_coor(2,1)], [curR_w_c(3,4) cam_coor(3,1)], 'r');            
-            hold on;
-            plot3([curR_w_c(1,4) cam_coor(1,2)], [curR_w_c(2,4) cam_coor(2,2)], [curR_w_c(3,4) cam_coor(3,2)], 'g');
-            hold on;
-            plot3([curR_w_c(1,4) cam_coor(1,3)], [curR_w_c(2,4) cam_coor(2,3)], [curR_w_c(3,4) cam_coor(3,3)], 'b');
-            hold off
-            axis equal
-            xlabel('x');
-            ylabel('y');
-            zlabel('z');
-            refresh
-            pause(0.1)
-        end
-    end
-end
 
 %% Generate simulated measurements
 bias_accel = zeros(size(a_i));
@@ -224,3 +188,43 @@ camData(:,3) = t;
 %% Create noisy measurements
 noisy_v_w = v_w + std_v_w*randn(size(v_w));
 noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
+
+
+%% Plot static results
+% figure, plot(t, a_i(1,:), t, a_i(2,:), t, a_i(3,:));
+% figure, plot(t,v_w);
+% figure, plot(t,p_w);
+
+% figure, plot3(a_w(1,:), a_w(2,:), a_w(3,:));
+% figure, plot3(v_w(1,:), v_w(2,:), v_w(3,:));
+% figure, plot3(p_w(1,:), p_w(2,:), p_w(3,:));
+
+%% Movie like plot
+if plotFlag
+    for i = 1:length(t)-1
+        
+        if (mod(t(i), 0.5) == 0)          
+            figure(9), plot3(p_w(1,:), p_w(2,:), p_w(3,:));
+            
+            hold on;
+            scatter3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r', '.');
+            
+            curR_w_c = T_w_i{i}*T_i_c;
+            cam_coor = curR_w_c*[x_i y_i z_i; ones(1,3)];
+            
+            hold on;
+            plot3([curR_w_c(1,4) cam_coor(1,1)], [curR_w_c(2,4) cam_coor(2,1)], [curR_w_c(3,4) cam_coor(3,1)], 'r');            
+            hold on;
+            plot3([curR_w_c(1,4) cam_coor(1,2)], [curR_w_c(2,4) cam_coor(2,2)], [curR_w_c(3,4) cam_coor(3,2)], 'g');
+            hold on;
+            plot3([curR_w_c(1,4) cam_coor(1,3)], [curR_w_c(2,4) cam_coor(2,3)], [curR_w_c(3,4) cam_coor(3,3)], 'b');
+            hold off
+            axis equal
+            xlabel('x');
+            ylabel('y');
+            zlabel('z');
+            refresh
+            pause(0.1)
+        end
+    end
+end
