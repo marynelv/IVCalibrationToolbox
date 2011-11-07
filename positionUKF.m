@@ -18,6 +18,8 @@ ukf_beta = 2;
 %% n: process noise
 
 %% Q: process noise covariance matrix
+% Q = std_v_w^2 * eye(3);
+Q = 0.1^2 *eye(3);
 
 %% z: measurements
 % See section 4.3 Measurement Model on page 11
@@ -45,7 +47,7 @@ numImuMeasurements = length(imuData);
 numPoses = numImuMeasurements + numCamMeasurements;
 accumPoses = zeros(3,numPoses);
 accumOrient = NaN * ones(3,numPoses);
-
+distanceError = zeros(1, numPoses);
 
 
 %% Begin Kalman filter
@@ -64,9 +66,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         nowTime = imuTime;
         dt = nowTime - pastTime;
         
-        u = v_w(1:3, i);   
+        u = noisy_v_w(1:3, i);   
         
-        [x P] = predictUFK(x, u, dt, P, ukf_N, ukf_alpha, ukf_beta);
+
+        [x P] = predictUFK(x, u, dt, P, Q, ukf_alpha, ukf_beta);
         
         i = i + 1;        
     else        
@@ -75,9 +78,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         % Perform correction step
         z = noisy_observed_pts_c(:,j);
 %         R = reshape(camData(j,11:46), 6, 6);
-%         R = eye(length(z));
-        R = std_pixel_noise^2 * eye(length(z));
-        
+%         R = std_pixel_noise^2 * eye(length(z));
+        R = 0.1^2 * eye(length(z));
         
         [sigmaPoints,Weightsm,Weightsc] = calculateSigmaPoints(x, P, ukf_N, ukf_alpha, ukf_beta);
         
@@ -113,6 +115,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
          j = j + 1;
     end
             
+    %% Distance error
+    distanceError(1,count) = norm(x(1:3) - p_w(:,i));
+    
     %% Plot
     accumPoses(:,count) = x(1:3);
 %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
@@ -122,11 +127,23 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     if mod(count, 10) == 1
         figure(1)
         clf
+        
+        subplot(2,1,1);
         plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'.');
         hold on;
         plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
+        hold on;
+        plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
         axis equal
         axis vis3d
+        
+        subplot(2,1,2);
+        plot(1:count,distanceError(1:count));
+        maxErr = max(distanceError);
+        axis([0 numPoses 0 maxErr]);
+        xlabel('Time');
+        ylabel('Distance to ground truth');
+        title('Squared Error');
         
     end
 end

@@ -27,7 +27,7 @@ rng(1);
 
 %% Setup parameters: time, body translational acceleration, body rotation velocity, noise characteristics
 plotFlag = 1;
-t = 0:0.01:5; % Simulation run time and time step
+t = 0:0.01:20; % Simulation run time and time step
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
@@ -57,10 +57,13 @@ gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
 
 % Parameters for 3D visual features
-numPoints = 50;
-pts_min = -10;
-pts_max = 10;
-std_pixel_noise = 0.1;
+numPoints = 100;
+pts_min = -100;
+pts_max = 100;
+% std_pixel_noise = 0.1;
+std_pixel_noise = 0.0;
+
+std_v_w = 0.1;
 
 
 %% Derivated values from setup parameters
@@ -215,6 +218,9 @@ for i = 1:length(t)
   observed_pts_c(:,i) = pixels(:);
 end
 
-noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
 camData = zeros(length(t), 3);
 camData(:,3) = t;
+
+%% Create noisy measurements
+noisy_v_w = v_w + std_v_w*randn(size(v_w));
+noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
