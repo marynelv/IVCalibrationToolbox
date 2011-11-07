@@ -1,7 +1,7 @@
 % Position-only UKF
 
 %% UKF parameters
-ukf_alpha = 0.001;
+ukf_alpha = 0.1;
 ukf_beta = 2;
 ukf_N = 3;
 
@@ -31,7 +31,7 @@ ukf_N = 3;
 
 %% Starting index
 i = 1;
-j = 2;
+j = 1;
 nowTime = -0.01;
 
 %% Initial estimate
@@ -96,19 +96,20 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         measurementDiff = bsxfun(@minus, gamma, z_pred);
         Pxz = zeros(length(x), length(z));
         Pzz = zeros(length(z), length(z));
-        for i = 1:size(stateDiff,2) % Not sure how to do this without a for loop
-            Pxz = Pxz + Weightsc(i)*stateDiff(:,i)*measurementDiff(:,i)';
-            Pzz = Pzz + Weightsc(i)*measurementDiff(:,i)*measurementDiff(:,i)';
+        for k = 1:size(stateDiff,2) % Not sure how to do this without a for loop
+            Pxz = Pxz + Weightsc(k)*stateDiff(:,k)*measurementDiff(:,k)';
+            Pzz = Pzz + Weightsc(k)*measurementDiff(:,k)*measurementDiff(:,k)';
         end
         
         K = Pxz*inv(Pzz+R);
-        x_plus = x + K*(z-z_pred);
+        innovation = z - z_pred;
+        x_plus = x + K*innovation;
         P_plus = P - K*Pzz*K';
+        
+        x = x_plus;
+        P = P_plus;
 
-        
-        
-%         [x, P] = updateEKF(x, P, z, R, global_points);        
-        j = j + 1;
+         j = j + 1;
     end
             
     %% Plot
@@ -117,7 +118,15 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     count = count + 1; 
     x
     
-   
+    if mod(count, 10) == 1
+        figure(1)
+        clf
+        plot3(accumPoses(1,1:count), accumPoses(2,1:count), accumPoses(3,1:count), '.');
+        hold on;
+        plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g.');
+
+        
+    end
 end
 
 
