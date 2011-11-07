@@ -121,10 +121,11 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     if mod(count, 10) == 1
         figure(1)
         clf
-        plot3(accumPoses(1,1:count), accumPoses(2,1:count), accumPoses(3,1:count), '.');
+        plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1));
         hold on;
-        plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g.');
-
+        plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
+        axis equal
+        axis vis3d
         
     end
 end
