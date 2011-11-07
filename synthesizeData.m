@@ -57,9 +57,10 @@ gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
 
 % Parameters for 3D visual features
-numPoints = 10;
+numPoints = 50;
 pts_min = -10;
 pts_max = 10;
+std_pixel_noise = 0.1;
 
 
 %% Derivated values from setup parameters
@@ -214,5 +215,6 @@ for i = 1:length(t)
   observed_pts_c(:,i) = pixels(:);
 end
 
+noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
 camData = zeros(length(t), 3);
 camData(:,3) = t;

@@ -3,7 +3,6 @@
 %% UKF parameters
 ukf_alpha = 0.1;
 ukf_beta = 2;
-ukf_N = 3;
 
 
 %% x: state vector
@@ -50,6 +49,8 @@ accumOrient = NaN * ones(3,numPoses);
 
 
 %% Begin Kalman filter
+ukf_N = length(x);
+
 count = 1;
 while (i <= numImuMeasurements && j <= numCamMeasurements )
 
@@ -72,10 +73,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         %% Correction Step
 
         % Perform correction step
-        z = observed_pts_c(:,j);
+        z = noisy_observed_pts_c(:,j);
 %         R = reshape(camData(j,11:46), 6, 6);
 %         R = eye(length(z));
-        R = 1e-6*eye(length(z));
+        R = std_pixel_noise^2 * eye(length(z));
         
         
         [sigmaPoints,Weightsm,Weightsc] = calculateSigmaPoints(x, P, ukf_N, ukf_alpha, ukf_beta);
@@ -121,7 +122,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     if mod(count, 10) == 1
         figure(1)
         clf
-        plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1));
+        plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'.');
         hold on;
         plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
         axis equal
