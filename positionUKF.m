@@ -1,7 +1,7 @@
 % Position-only UKF
 
 %% UKF parameters
-ukf_alpha = 1;
+ukf_alpha = 0.001;
 ukf_beta = 2;
 ukf_N = 3;
 
@@ -79,6 +79,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         
         [sigmaPoints,Weightsm,Weightsc] = calculateSigmaPoints(x, P, ukf_N, ukf_alpha, ukf_beta);
+        
+        % Eq 73
         numSigmaPoints = size(sigmaPoints, 2);
         p_IMU_camera = repmat(p_i_c, 1, numSigmaPoints);
         q_world_IMU = repmat(q_w_i(:,j), 1, numSigmaPoints);
@@ -87,7 +89,22 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         K = eye(3);
         gamma = measurementModelTranslation(sigmaPoints, p_IMU_camera, q_world_IMU, q_IMU_camera, p_world_pts, K);
         
+        % Eq 74
         z_pred = sum( bsxfun(@times, gamma, Weightsm'), 2);
+        
+        stateDiff = bsxfun(@minus, sigmaPoints, x);
+        measurementDiff = bsxfun(@minus, gamma, z_pred);
+        Pxz = zeros(length(x), length(z));
+        Pzz = zeros(length(z), length(z));
+        for i = 1:size(stateDiff,2) % Not sure how to do this without a for loop
+            Pxz = Pxz + Weightsc(i)*stateDiff(:,i)*measurementDiff(:,i)';
+            Pzz = Pzz + Weightsc(i)*measurementDiff(:,i)*measurementDiff(:,i)';
+        end
+        
+        K = Pxz*inv(Pzz+R);
+        x_plus = x + K*(z-z_pred);
+        P_plus = P - K*Pzz*K';
+
         
         
 %         [x, P] = updateEKF(x, P, z, R, global_points);        
@@ -99,6 +116,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
 %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
     count = count + 1; 
     x
+    
+   
 end
 
 
