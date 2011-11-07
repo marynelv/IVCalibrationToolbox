@@ -78,9 +78,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         % Perform correction step
         z = noisy_observed_pts_c(:,j);
 %         R = reshape(camData(j,11:46), 6, 6);
-%         R = eye(length(z));
-        R = std_pixel_noise^2 * eye(length(z));
-        
+%         R = std_pixel_noise^2 * eye(length(z));
+        R = 0.1^2 * eye(length(z));
         
         [sigmaPoints,Weightsm,Weightsc] = calculateSigmaPoints(x, P, ukf_N, ukf_alpha, ukf_beta);
         
@@ -133,6 +132,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'.');
         hold on;
         plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
+        hold on;
+        plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
         axis equal
         axis vis3d
         
