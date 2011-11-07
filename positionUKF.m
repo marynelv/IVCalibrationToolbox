@@ -45,7 +45,7 @@ numImuMeasurements = length(imuData);
 numPoses = numImuMeasurements + numCamMeasurements;
 accumPoses = zeros(3,numPoses);
 accumOrient = NaN * ones(3,numPoses);
-
+distanceError = zeros(1, numPoses);
 
 
 %% Begin Kalman filter
@@ -113,6 +113,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
          j = j + 1;
     end
             
+    %% Distance error
+    distanceError(1,count) = norm(x(1:3) - p_w(:,i));
+    
     %% Plot
     accumPoses(:,count) = x(1:3);
 %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
@@ -122,11 +125,21 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     if mod(count, 10) == 1
         figure(1)
         clf
+        
+        subplot(2,1,1);
         plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'.');
         hold on;
         plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
         axis equal
         axis vis3d
+        
+        subplot(2,1,2);
+        plot(1:count,distanceError(1:count));
+        maxErr = max(distanceError);
+        axis([0 numPoses 0 maxErr]);
+        xlabel('Time');
+        ylabel('Distance to ground truth');
+        title('Squared Error');
         
     end
 end
