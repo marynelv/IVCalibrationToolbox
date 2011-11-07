@@ -102,8 +102,21 @@ Q = \begin{bmatrix}
 \label{eq:TranslationTest-stateVec}
 \end{equation}
 
-We automatically generated landmarks by uniformly sampling
-3D points in a cube, and projected them 
+We automatically generated landmarks by uniformly sampling 3D points
+in our simulated world, and projected them into our simulated camera
+sensor. Figure \ref{fig:TranslationTest-uniformPoints} depicts a
+possible distribution of landmarks in our simulated world.
+
+% TODO. Might be a good idea to regenerate this picture with whatever
+% point distribution we used before submitting the report..
+\begin{figure}[h!tbp]
+\centering
+\includegraphics[width=0.5\linewidth]{uniform_points}
+\caption{Automatically generated landmarks (red points) in our simulated
+  world. The blue line depicts the uniform velocity path used for the
+  rigid body translation test.}
+\label{fig:TranslationTest-uniformPoints}
+\end{figure}
 
 \section{Future work}
 
