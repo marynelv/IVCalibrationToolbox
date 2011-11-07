@@ -26,7 +26,7 @@ p_camera_pts=C_q_IMU_camera(1:3, 1:3)*bsxfun(@minus,p_IMU_pts,p_IMU_camera(:,i))
 
 p_camera_pts_proj=K*p_camera_pts;
 zi=bsxfun(@rdivide,p_camera_pts_proj(1:2,:),p_camera_pts_proj(3,:));
-zi=zi';
+%zi=zi';
 z(:,i)=zi(:);
 
 end
