@@ -12,7 +12,6 @@ function x_k=processModel(x_kminus1, timestep, usetranslationonly)
 % NOTE: The full x_k vector is defined in equation (13), page 9
 if usetranslationonly
     x_k=processModelTranslation(x_kminus1(1:3,:), x_kminus1(8:10,:), timestep);
-    
 else
     fprintf('Sorry, the general model is not yet implemented :). set usetranslationonly to 1');
     x_k=[];
