@@ -36,7 +36,8 @@ j = 1;
 nowTime = -0.01;
 
 %% Initial estimate
-x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
+% x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
+x(1:3,1) = [0.4 0.4 0.4]';
 P = diag([0.5 0.5 0.5]);
 
 
@@ -132,8 +133,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'.');
         hold on;
         plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
-        hold on;
-        plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
+%         hold on;
+%         plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
         axis equal
         axis vis3d
         

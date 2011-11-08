@@ -31,14 +31,14 @@ t = 0:0.01:20; % Simulation run time and time step
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
-% a_i = repmat([0.1 -.1 .2]', 1, length(t));
-a_i = repmat([0 0.8 0]', 1, length(t));
+a_i = repmat([0.5 -.5 1]', 1, length(t));
+% a_i = repmat([0 0.8 0]', 1, length(t));
 % a_i = repmat([0.3 0 0]', 1, length(t));
 
 
 % w = -pi + 2*pi*rand(3,length(t)); %in rad/second
 % w = repmat([.1 .3 0.5]', 1, length(t));
-w = repmat([0 0 -.3]', 1, length(t));
+w = repmat([.20 0 -.3]', 1, length(t));
 % w = zeros(3, length(t));
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
@@ -57,11 +57,11 @@ gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
 
 % Parameters for 3D visual features
-numPoints = 100;
+numPoints = 50;
 pts_min = -100;
 pts_max = 100;
 % std_pixel_noise = 0.1;
-std_pixel_noise = 0.0;
+std_pixel_noise = 0.1;
 
 std_v_w = 0.1;
 
