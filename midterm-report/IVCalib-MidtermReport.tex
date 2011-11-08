@@ -204,6 +204,16 @@ calibration.
 
 \subsection{Estimating rigid body translation}
 
+\begin{figure}[h!tbp]
+\centering
+\includegraphics[width=0.5\linewidth]{uniform_points}
+\caption{Automatically generated landmarks (red points) in our simulated
+  world. The blue line depicts the uniform velocity path used for the
+  rigid body translation test.}
+\label{fig:TranslationTest-uniformPoints}
+\end{figure}
+
+
 Our first simulation test consisted on effectively estimating the
 position in 3D space of the rigid body sensor suite. We assumed our
 inertial sensor was able to give us velocity instead of acceleration,
@@ -233,14 +243,6 @@ possible distribution of landmarks in our simulated world.
 
 % TODO. Might be a good idea to regenerate this picture with whatever
 % point distribution we used before submitting the report..
-\begin{figure}[h!tbp]
-\centering
-\includegraphics[width=0.5\linewidth]{uniform_points}
-\caption{Automatically generated landmarks (red points) in our simulated
-  world. The blue line depicts the uniform velocity path used for the
-  rigid body translation test.}
-\label{fig:TranslationTest-uniformPoints}
-\end{figure}
 
 \section{Future work}
 
