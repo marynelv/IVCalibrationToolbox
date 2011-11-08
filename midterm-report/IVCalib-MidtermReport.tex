@@ -21,7 +21,11 @@
 
 \section{Introduction}
 
+In this project, we estimate the rotation and translation between a rigidly connected camera and IMU using an unscented Kalman filter. Calibrating a camera-IMU setup is the first step in sensor fusion research. We are interested in creating an open-source calibration toolbox that can be used as a starting point by sensor fusion enthusiasts. The unscented Kalman filter helps to propagate the state of our system through process and measurement models that incorporate rotation, which is non-linear.
 
+The state vector in our system consists of the camera-IMU rotation and translation, as well as the orientation and position of the IMU in the world coordinate system, the velocity in world space, the gravity vector, and the biases of the IMU's accelerometer and the gyroscope. The IMU-camera setup moves in the world space, and the camera images a set of world points with known locations in the world space. The imaged points form the measurement in our system. We predict the next state of the system from the current state by propagating a set of sigma points through the process model. We correct the state whenever a measurement is obtained from the camera.
+
+We have performed an initial set of experiments where we assume we know everything about the system except the translation between the camera and the IMU. We estimate the translation using a modified process model for translation alone, and we analyze our performance in the face of noise in the measurement of the imaged points and the velocity.
 
 \section{UKF Formulation}
 \label{sec:UKF}
@@ -50,7 +54,7 @@ variables.
 \end{equation}
 
 The process model uses IMU measurements as control inputs along the
-vein of Kelly and Sukhatme (ref). We model the accelerometer and
+vein of Kelly and Sukhatme \cite{2011:kelly:article}. We model the accelerometer and
 gyroscope biases as Gaussian random walk processes driven by zero mean
 noise $\bb{n}_{aw}$ and $\bb{n}_{gw}$, with covariances $\bb{Q}_{aw}$
 and $\bb{Q}_{gw}$, and we model their additive noise by zero mean
@@ -156,13 +160,13 @@ The Kalman gain matrix is computed and used to compute the \emph{a
 \bb{\hat{x}}^+(t_k)&=\bb{\hat{x}}^-(t_k)+\bb{K}(t_k)\left( \bb{z}(t_k)-\bb{\hat{z}}(t_k) \right) \nonumber \\
 \bb{P}^+(t_k)&=\bb{P}^-(t_k)-\bb{K}(t_k)\bb{P}_{\bb{\hat{z}\hat{z}}}(t_k)(\bb{K}(t_k))^T \nonumber
 \end{align}
-\textbf{Note:} As described in Kelly and Sukhatme (ref), the unscented
+\textbf{Note:} As described in Kelly and Sukhatme \cite{2011:kelly:article}, the unscented
 Kalman filter updates the state by computing the barycentric mean of
 the sigma points. In general the barycentric mean of unit quaternions
 $\overline{q}_I^W$ and $\overline{q}_C^I$ will not lie on the unit
 sphere, and we require a different parametrization for their
 update. We will use the modified Rodrigues parameters (MRPs) of the
-error quaternions used by Kelly and Sukhatme. The modified Rodrigues
+error quaternions used in \cite{2011:kelly:article}. The modified Rodrigues
 parameter $\delta \bb{e}$ is given as:
 \begin{align}
 \delta \bb{e}=\frac{\delta \bb{q}}{1+\delta q_0},
@@ -243,7 +247,7 @@ possible distribution of landmarks in our simulated world.
 
 
 \bibliographystyle{plain}
-\bibliography{references}
+\bibliography{IVCalib-MidtermReport}
 
 \end{document}
 
