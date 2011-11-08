@@ -23,8 +23,8 @@ rng(1);                                     % repeatable simulation results
 plotFlag = 1;                               % want a plot?
 t = 0:0.01:20;                              % simulation run time and time step
 
-a_c_w = repmat([0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration for the camera
-p0_c_w = [0 0 0]';                          % initial camera position in the world
+a_w_c = repmat([0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration for the camera
+p0_w_c = [0 0 0]';                          % initial camera position in the world
 
 q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
 p_i_c = [ 0 0 0]';                          % translation from IMU to camera
@@ -42,21 +42,21 @@ nSteps = length(t);
 %% Generate landmarks
 pts_w = bsxfun(@plus, pts_min+(pts_max-pts_min).*rand(3,numPoints), pts_center);
 
-%% Generate camera path first and find its orientation
-q_c_w = zeros(4,nSteps);
-v_c_w = zeros(3,nSteps);
-p_c_w = zeros(3,nSteps);
 
-p_c_w(:,1) = p0_c_w;
-%q_c_w = 
+%% Generate camera path first and find its orientation
+q_w_c = zeros(4,nSteps);
+v_w_c = zeros(3,nSteps);
+p_w_c = zeros(3,nSteps);
+
+p_w_c(:,1) = p0_w_c;
 
 for i = 2:nSteps
     dt = t(i) - t(i-1);                 
-    v_c_w(:,i) = v_c_w(:,i-1) + a_c_w(:,i-1)*dt;
-    p_c_w(:,i) = p_c_w(:,i-1) + v_c_w(:,i-1)*dt + 0.5*a_c_w(:,i-1)*dt^2;
+    v_w_c(:,i) = v_w_c(:,i-1) + a_w_c(:,i-1)*dt;
+    p_w_c(:,i) = p_w_c(:,i-1) + v_w_c(:,i-1)*dt + 0.5*a_w_c(:,i-1)*dt^2;
+    
+    q_w_c(:,i) = cameraOrientation(p_w_c(:,i), v_w_c(:,i)/norm(v_w_c(:,i)), pts_center);
 end
-
-
 
 
 %% Plot
@@ -71,7 +71,7 @@ if plotFlag
     scatter3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r', '.');
     
     % plot camera path
-    plot3(p_c_w(1,:), p_c_w(2,:), p_c_w(3,:), 'b-');
+    plot3(p_w_c(1,:), p_w_c(2,:), p_w_c(3,:), 'b-');
     
     axis equal; axis vis3d;
     
