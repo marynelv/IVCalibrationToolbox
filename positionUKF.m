@@ -69,8 +69,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         u = noisy_v_w(1:3, i);   
         
-
-        [x P] = predictUFK(x, u, dt, P, Q, ukf_alpha, ukf_beta);
+        process_params{1} = u;
+        process_params{2} = dt
+        process_handle = @processModelTranslation;
+        [x P] = predictUFK(x, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
         
         i = i + 1;        
     else        
