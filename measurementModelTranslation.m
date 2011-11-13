@@ -1,4 +1,4 @@
-function z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q_IMU_camera, p_world_pts, K)
+function z=measurementModelTranslation(p_world_IMU, params)
 
 % z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q_IMU_camera, p_world_pts, K)
 %
@@ -10,6 +10,12 @@ function z=measurementModelTranslation(p_world_IMU, p_IMU_camera, q_world_IMU, q
 % K: 3x3 matrix
 %
 % z: 2P x 1 vector or 2P x (2N+1) matrix
+
+p_IMU_camera = params{1};
+q_world_IMU = params{2};
+q_IMU_camera = params{3};
+p_world_pts = params{4};
+K = params{5};
 
 P=size(p_world_pts,2);
 N=size(p_world_IMU,2);

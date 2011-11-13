@@ -107,3 +107,15 @@ if plotFlag
     end
     
 end
+
+%% position and orientation of IMU in the world frame 
+q_w_i=zeros(4,nSteps);
+p_w_i=zeros(3,nSteps);
+
+for i=2:nSteps
+    q_w_i(:,i)=rotation2quaternion(quaternion2rotation(q_w_c(:,i))/(quaternion2rotation(q_i_c)));
+    p_w_i(:,i)=p_w_c(:,i)+quaternion2rotation(q_w_c(:,i))*(-p_i_c);
+end
+
+v_w_i=diff(p_w_i,1,2)./diff(t,1);
+a_w_i=diff(v_w_i,1,2)./diff(t(1:end-1),1);
