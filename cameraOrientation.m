@@ -7,7 +7,7 @@
 function q = cameraOrientation(p_c_w, v_c_w, lookAtPoint)
 
 % build camera frame
-z = lookAtPoint - p_c_w;
+z = p_c_w - lookAtPoint;
 x = v_c_w/norm(v_c_w);
 y = cross(z,x);
 x = cross(y,z);
@@ -17,7 +17,9 @@ y = y/norm(y);
 x = x/norm(x);
 
 % rotation matrix from world frame to camera
-R = [x y z]';
+R = [x y z];
+
+assert(abs(det(R) - 1) < 1e-6);
 
 % corresponding quaternion
 q = rotation2quaternion(R);
