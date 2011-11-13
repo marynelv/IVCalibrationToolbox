@@ -70,7 +70,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         u = noisy_v_w(1:3, i);   
         
         process_params{1} = u;
-        process_params{2} = dt
+        process_params{2} = dt;
         process_handle = @processModelTranslation;
         [x P] = predictUFK(x, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
         
@@ -83,38 +83,22 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
 %         R = reshape(camData(j,11:46), 6, 6);
 %         R = std_pixel_noise^2 * eye(length(z));
         R = 0.1^2 * eye(length(z));
-        
-        [sigmaPoints,Weightsm,Weightsc] = calculateSigmaPoints(x, P, ukf_N, ukf_alpha, ukf_beta);
-        
-        % Eq 73
-        numSigmaPoints = size(sigmaPoints, 2);
-        p_IMU_camera = repmat(p_i_c, 1, numSigmaPoints);
-        q_world_IMU = repmat(q_w_i(:,j), 1, numSigmaPoints);
-        q_IMU_camera = repmat(q_i_c, 1, numSigmaPoints);
+                
+        p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
+        q_world_IMU = repmat(q_w_i(:,j), 1, 2*ukf_N+1);
+        q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
         p_world_pts = pts_w(1:3, :);
         K = eye(3);
-        gamma = measurementModelTranslation(sigmaPoints, p_IMU_camera, q_world_IMU, q_IMU_camera, p_world_pts, K);
+        obs_params{1} = p_IMU_camera;
+        obs_params{2} = q_world_IMU;
+        obs_params{3} = q_IMU_camera;
+        obs_params{4} = p_world_pts;
+        obs_params{5} = K;
         
-        % Eq 74
-        z_pred = sum( bsxfun(@times, gamma, Weightsm'), 2);
+        obs_handle = @measurementModelTranslation;
         
-        stateDiff = bsxfun(@minus, sigmaPoints, x);
-        measurementDiff = bsxfun(@minus, gamma, z_pred);
-        Pxz = zeros(length(x), length(z));
-        Pzz = zeros(length(z), length(z));
-        for k = 1:size(stateDiff,2) % Not sure how to do this without a for loop
-            Pxz = Pxz + Weightsc(k)*stateDiff(:,k)*measurementDiff(:,k)';
-            Pzz = Pzz + Weightsc(k)*measurementDiff(:,k)*measurementDiff(:,k)';
-        end
-        
-        K = Pxz/(Pzz+R);
-        innovation = z - z_pred;
-        x_plus = x + K*innovation;
-        P_plus = P - K*Pzz*K';
-        
-        x = x_plus;
-        P = P_plus;
-
+        [ x, P ] = correctUKF( x, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
+         
          j = j + 1;
     end
             
