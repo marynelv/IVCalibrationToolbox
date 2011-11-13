@@ -30,13 +30,19 @@ a_w_c = repmat([-0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration
 p0_w_c = [0 0 0]';                          % initial camera position in the world
 v0_w_c = [0.3 0.8 -0.1]*timeStep';          % initial camera velocity
 
-q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
+% q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
+% p_i_c = [ 10 0 0]';                          % translation from IMU to camera
+q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
 p_i_c = [ 10 0 0]';                          % translation from IMU to camera
+
 
 numPoints = 100;                            % number of landmarks
 pts_min = -5;                          
 pts_max = 5;
 pts_center = [10 10 0]';                    % mean landmark
+
+std_pixel_noise = 0.1;
+std_v_w = 0.1;
 
 gravity = [0 0 9.81]';                      % gravity
 
@@ -90,6 +96,8 @@ end
 
 v_w_i=bsxfun(@rdivide,diff(p_w_i,1,2),diff(t,1));
 a_w_i=bsxfun(@rdivide,diff(v_w_i,1,2),diff(t(1:end-1),1));
+v_w_i=[v_w_i,v_w_i(:,end)];
+a_w_i=[a_w_i,a_w_i(:,end-1:end)];
 
 
 %% Position camera axis throughout simulation
@@ -99,6 +107,50 @@ for i = 1:nSteps
    camera_z(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_z(:,i))*5; 
 end
 
+
+%% Projected points
+observed_pts_c = NaN * ones(2*numPoints, length(t));
+for i = 1:length(t)
+        % [px py]' = K*R[ I | -C ] * [x y z 1]' 
+        for p = 1:numPoints
+%            xyz = K*quaternion2rotation(q_w_c(:,i))'*(pts_w(:,p) - p_w_c(:,i));
+           xyz =  K*quaternion2rotation(q_w_c(:,i))'*[eye(3) -p_w_c(:,i)]*[pts_w(:,p); 1];
+           pts_proj(1,p) = xyz(1)/xyz(3);
+           pts_proj(2,p) = xyz(2)/xyz(3);
+        end
+        observed_pts_c(:,i)=pts_proj(:);
+end
+
+%% Rename stuff like before
+a_w = a_w_i;
+v_w = v_w_i;
+p_w = p_w_i;
+
+std_dev_noise_accel = 0;
+std_dev_bias_accel = 0;
+std_dev_noise_gyro = 0;
+
+bias_accel = zeros(size(a_w_i));
+noise_accel = std_dev_noise_accel*randn(size(a_w_i));
+accel_i_measured = a_w_i + bias_accel + noise_accel;
+
+w = repmat([0 0 0]', 1, length(t));
+bias_gyro = zeros(size(w));
+noise_gyro = std_dev_noise_gyro*randn(size(w));
+gyro_i_measured = w + bias_gyro + noise_gyro;
+
+imuData = zeros(length(t), 31);
+imuData(:,3) = t;
+imuData(:,17:19) = gyro_i_measured';
+imuData(:,29:31) = accel_i_measured';
+
+camData = zeros(length(t), 3);
+camData(:,3) = t;
+
+
+%% Create noisy measurements
+noisy_v_w = v_w + std_v_w*randn(size(v_w));
+noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
 
 %% Plot
 if plotFlag
@@ -127,22 +179,14 @@ if plotFlag
         plot3([p_w_c(1,i) p_w_i(1,i)], [p_w_c(2,i) p_w_i(2,i)], [p_w_c(3,i) p_w_i(3,i)], 'c-');
         
         axis equal; axis vis3d;    
-        axis([-30 30 -5 45 -30 30]);
+        axis([-10 30 -5 45 -30 30]);
         xlabel('x'); ylabel('y'); zlabel('z');
         title(sprintf('frame %d/%d', i, length(t)-1));
         view([-41 36]);
         hold off;
-                
-        % [px py]' = K*R[ I | -C ] * [x y z 1]' 
-        for p = 1:numPoints
-%            xyz = K*quaternion2rotation(q_w_c(:,i))'*(pts_w(:,p) - p_w_c(:,i));
-           xyz =  K*quaternion2rotation(q_w_c(:,i))'*[eye(3) -p_w_c(:,i)]*[pts_w(:,p); 1];
-           pts_proj(1,p) = xyz(1)/xyz(3);
-           pts_proj(2,p) = xyz(2)/xyz(3);
-        end
-        
+           
         subplot(1,2,2);
-        scatter(pts_proj(1,:), pts_proj(2,:), 'r');
+        scatter(observed_pts_c(1:2:end,i), observed_pts_c(2:2:end,i), 'r');
         axis equal;
         axis([0 image_width 0 image_height]);
         xlabel('x'); ylabel('-y');

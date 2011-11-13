@@ -65,6 +65,8 @@ std_pixel_noise = 0.1;
 
 std_v_w = 0.1;
 
+K = eye(3);             % intrinsic camera parameters
+
 
 %% Derivated values from setup parameters
 T_i_c = rotx(euler_i_c(1))*roty(euler_i_c(2))*rotz(euler_i_c(3));
