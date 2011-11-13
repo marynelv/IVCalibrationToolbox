@@ -24,9 +24,9 @@ rng(1);                                     % repeatable simulation results
 %% Setup parameters
 plotFlag = 1;                               % want a plot?
 timeStep = 0.05;                            % delta T
-t = 0:timeStep:20;                          % simulation run time and time step
+t = 0:timeStep:5;                          % simulation run time and time step
 
-a_w_c = repmat([0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration for the camera
+a_w_c = repmat([-0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration for the camera
 p0_w_c = [0 0 0]';                          % initial camera position in the world
 v0_w_c = [0.3 0.8 -0.1]*timeStep';          % initial camera velocity
 
@@ -34,11 +34,15 @@ q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to cam
 p_i_c = [ 10 0 0]';                          % translation from IMU to camera
 
 numPoints = 100;                            % number of landmarks
-pts_min = -50;                          
-pts_max = 50;
-pts_center = [300 100 0]';                  % mean landmark
+pts_min = -5;                          
+pts_max = 5;
+pts_center = [10 10 0]';                    % mean landmark
 
 gravity = [0 0 9.81]';                      % gravity
+
+image_width = 640;                          % image width
+image_height = 480;                         % image height
+f = 0.7;                                      % focal length
 
 
 %% Derived parameters
@@ -48,6 +52,10 @@ camera_x = repmat([1 0 0]',1,nSteps);
 camera_y = repmat([0 -1 0]',1,nSteps);
 camera_z = repmat([0 0 -1]',1,nSteps);
 
+% camera stuff
+pts_proj = zeros(2,numPoints);              % landmarks projected into the image plane
+px = image_width/2; py = image_height/2;    % principal point
+K = [f*image_width 0 px; 0 f*image_height py; 0 0 1];                % intrinsic parameters
 
 %% Generate landmarks
 pts_w = bsxfun(@plus, pts_min+(pts_max-pts_min).*rand(3,numPoints), pts_center);
@@ -86,25 +94,26 @@ a_w_i=bsxfun(@rdivide,diff(v_w_i,1,2),diff(t(1:end-1),1));
 
 %% Position camera axis throughout simulation
 for i = 1:nSteps
-   camera_x(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_x(:,i))*30; 
-   camera_y(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_y(:,i))*30; 
-   camera_z(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_z(:,i))*30; 
+   camera_x(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_x(:,i))*5; 
+   camera_y(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_y(:,i))*5; 
+   camera_z(:,i) = p_w_c(:,i) + quaternionRotate(q_w_c(:,i)', camera_z(:,i))*5; 
 end
 
 
 %% Plot
 if plotFlag
     for i = 1:length(t) - 1
-    
+        
         figure(1);
         grid on;
 
         % plot points
+        subplot(1,2,1);
         scatter3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r', '.');
         hold on;
         scatter3(pts_center(1), pts_center(2), pts_center(3), 'b', '.');
         
-        plot3([p_w_c(1,i) pts_center(1)], [p_w_c(2,i) pts_center(2)], [p_w_c(3,i) pts_center(3)],'m-'); 
+%         plot3([p_w_c(1,i) pts_center(1)], [p_w_c(2,i) pts_center(2)], [p_w_c(3,i) pts_center(3)],'m-'); 
         
         % plot camera path
         plot3(p_w_c(1,:), p_w_c(2,:), p_w_c(3,:), 'k-');
@@ -118,12 +127,26 @@ if plotFlag
         plot3([p_w_c(1,i) p_w_i(1,i)], [p_w_c(2,i) p_w_i(2,i)], [p_w_c(3,i) p_w_i(3,i)], 'c-');
         
         axis equal; axis vis3d;    
-        axis([0 350 0 150 -40 40]);
+        axis([-30 30 -5 45 -30 30]);
         xlabel('x'); ylabel('y'); zlabel('z');
         title(sprintf('frame %d/%d', i, length(t)-1));
-        view([93 48]);
-        
+        view([-41 36]);
         hold off;
+                
+        % [px py]' = K*R[ I | -C ] * [x y z 1]' 
+        for p = 1:numPoints
+%            xyz = K*quaternion2rotation(q_w_c(:,i))'*(pts_w(:,p) - p_w_c(:,i));
+           xyz =  K*quaternion2rotation(q_w_c(:,i))'*[eye(3) -p_w_c(:,i)]*[pts_w(:,p); 1];
+           pts_proj(1,p) = xyz(1)/xyz(3);
+           pts_proj(2,p) = xyz(2)/xyz(3);
+        end
+        
+        subplot(1,2,2);
+        scatter(pts_proj(1,:), pts_proj(2,:), 'r');
+        axis equal;
+        axis([0 image_width 0 image_height]);
+        xlabel('x'); ylabel('-y');
+        title('Camera image');
         
         pause(0.1);        
         
