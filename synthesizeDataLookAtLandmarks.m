@@ -30,8 +30,8 @@ a_w_c = repmat([0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration 
 p0_w_c = [0 0 0]';                          % initial camera position in the world
 v0_w_c = [0.3 0.8 -0.1]*timeStep';          % initial camera velocity
 
-q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
-p_i_c = [ 0 0 0]';                          % translation from IMU to camera
+q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
+p_i_c = [ 10 0 0]';                          % translation from IMU to camera
 
 numPoints = 100;                            % number of landmarks
 pts_min = -50;                          
@@ -75,13 +75,13 @@ end
 q_w_i=zeros(4,nSteps);
 p_w_i=zeros(3,nSteps);
 
-for i=2:nSteps
+for i=1:nSteps
     q_w_i(:,i)=rotation2quaternion(quaternion2rotation(q_w_c(:,i))/(quaternion2rotation(q_i_c)));
-    p_w_i(:,i)=p_w_c(:,i)+quaternion2rotation(q_w_c(:,i))*(-p_i_c);
+    p_w_i(:,i)=p_w_c(:,i)+(quaternion2rotation(q_w_c(:,i))/(quaternion2rotation(q_i_c)))*(-p_i_c);
 end
 
-v_w_i=diff(p_w_i,1,2)./diff(t,1);
-a_w_i=diff(v_w_i,1,2)./diff(t(1:end-1),1);
+v_w_i=bsxfun(@rdivide,diff(p_w_i,1,2),diff(t,1));
+a_w_i=bsxfun(@rdivide,diff(v_w_i,1,2),diff(t(1:end-1),1));
 
 
 %% Position camera axis throughout simulation
@@ -114,6 +114,9 @@ if plotFlag
         plot3([p_w_c(1,i) camera_y(1,i)], [p_w_c(2,i) camera_y(2,i)], [p_w_c(3,i) camera_y(3,i)], 'g');
         plot3([p_w_c(1,i) camera_z(1,i)], [p_w_c(2,i) camera_z(2,i)], [p_w_c(3,i) camera_z(3,i)], 'b');
 
+        % draw imu
+        plot3([p_w_c(1,i) p_w_i(1,i)], [p_w_c(2,i) p_w_i(2,i)], [p_w_c(3,i) p_w_i(3,i)], 'c-');
+        
         axis equal; axis vis3d;    
         axis([0 350 0 150 -40 40]);
         xlabel('x'); ylabel('y'); zlabel('z');
