@@ -88,7 +88,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         q_world_IMU = repmat(q_w_i(:,j), 1, 2*ukf_N+1);
         q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
         p_world_pts = pts_w(1:3, :);
-        K = eye(3);
+        %K = eye(3);
         obs_params{1} = p_IMU_camera;
         obs_params{2} = q_world_IMU;
         obs_params{3} = q_IMU_camera;
