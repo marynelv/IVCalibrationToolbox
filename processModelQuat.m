@@ -60,7 +60,7 @@ for i=1:numSigmaPoints
     omega_w = [ 0,     -w_i(:,i)';
         w_i(:,i),   -skew_w];
     
-    dq_dt(:,i) = omega_w*sigma_q_w_i(:,i);
+    dq_dt(:,i) = 0.5*omega_w*sigma_q_w_i(:,i);
     
     sigma_qk1(:,i) = sigma_q_w_i(:,i) + timestep * dq_dt(:,i);
     
