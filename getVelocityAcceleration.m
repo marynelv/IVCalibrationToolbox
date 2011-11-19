@@ -2,8 +2,8 @@ function [V,A,Omega,Alpha]=getVelocityAcceleration(P,Q,t)
 
 n=size(P,2);
 V=zeros(3,n-1);
-Omega=zeros(4,n-1);
-A=zeros(4,n-2);
+Omega=zeros(3,n-1);
+A=zeros(3,n-2);
 Alpha=zeros(3,n-2);
 
 dPdt=diff(P,1,2)./diff(t,1,2);
@@ -18,13 +18,22 @@ for i=1:n
     Qstar(:,i)=quaternionconjugate(Q(:,i));
 end
 
-for i=1:n-1    
-    V(:,i)=quaternionproduct(quaternionproduct(Qstar(:,i),[0;dPdt(:,i)]),Q(:,i));
-    Omega(:,i)=2*quaternionproduct(Qstar(:,i),dQdt(:,i));
+for i=1:n-1
+    v=quaternionproduct(quaternionproduct(Qstar(:,i),[0;dPdt(:,i)]),Q(:,i));
+    V(:,i)=v(2:end);
+    om=2*quaternionproduct(Qstar(:,i),dQdt(:,i));
+    Omega(:,i)=om(2:end);
     if i~=n-1
-        A(:,i)=quaternionproduct(quaternionproduct(Qstar(:,i),[0;d2Pdt2(:,i)]),Q(:,i));
-        Alpha(:,i)=2*quaternionproduct(Qstar(:,i),d2Qdt2(:,i));
+        a=quaternionproduct(quaternionproduct(Qstar(:,i),[0;d2Pdt2(:,i)]),Q(:,i));
+        A(:,i)=a(2:end);
+        al=2*quaternionproduct(Qstar(:,i),d2Qdt2(:,i));
+        Alpha(:,i)=al(2:end);
     end    
 end
+
+V=[V,V(:,end)];
+Omega=[Omega,Omega(:,end)];
+A=[A,A(:,end-1:end)];
+Alpha=[Alpha,Alpha(:,end-1:end)];
 
 end
