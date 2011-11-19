@@ -35,8 +35,12 @@ nowTime = -0.01;
 
 %% Initial estimate
 % x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
+expected_rad_error = 10 * pi / 180;
+init_rad_error = 0.2* expected_rad_error;
+rand_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
+% x(1:4,1) = quaternionproduct(q_w_i(:,i), rand_quat);
 x(1:4,1) = q_w_i(:,i);
-P = diag([20 20 20]) * pi / 180;
+P = expected_rad_error * eye(3);
 
 
 
@@ -84,8 +88,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             bsxfun(@times,(1+dq0),mrp_error)];
         
         quat_new = quaternionproduct(q_error, mean_q)';
-        x(1:4) = quat_new;
-        i = i + 1;
+        x(1:4) = quat_new./norm(quat_new);
+    P
+    i = i + 1;
     else
         %% Correction Step
         
@@ -104,7 +109,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
         p_world_pts = pts_w(1:3, :);
         
-        K = eye(3);
+%         K = eye(3);
         obs_params{1} = x(1:4);
         obs_params{2} = p_world_IMU;
         obs_params{3} = p_IMU_camera;
@@ -113,8 +118,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         obs_params{6} = K;
         obs_handle = @measurementModelRotation;
         
+%         [M,Pp,K,MU,S,LH] = UKF_UPDATE1(x_se,P,z,obs_handle,R,obs_params,ukf_alpha,ukf_beta);
         [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
         
+%           mrp_error = M(1:3);
         mrp_error = x_se(1:3);
         % Convert MRP error vector to quaternion error
         norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
@@ -122,21 +129,22 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         q_error = [ dq0;
             bsxfun(@times,(1+dq0),mrp_error)];
-        
-        x(1:4) = quaternionproduct(q_error, x(1:4))';
-        
+%         q_error = q_error./norm(q_error);
+        quat_new = quaternionproduct(q_error, x(1:4))';
+        quat_new = quat_new ./ norm(quat_new);
+        x(1:4) = quat_new;
         
         j = j + 1;
     end
     
     %% Distance error
-    distanceError(1,count) = norm(x - q_w_i(:,i));
+    distanceError(1,count) = findQuaternionError(x, q_w_i(:,i));
     
     %% Plot
     accumQuat(:,count) = x;
     %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
     count = count + 1;
-    x
+    x;
     
     if mod(count, 10) == 1
         figure(1)

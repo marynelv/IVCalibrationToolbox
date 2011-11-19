@@ -20,7 +20,7 @@ K = params{6};
 
 
 P=size(p_world_pts,2);
-N=size(p_world_IMU,2);
+N=size(de_world_IMU,2);
 
 z=zeros(2*P, N);
 
@@ -29,11 +29,16 @@ for i=1:N
     de=de_world_IMU(:,i);
     dq0=(1-norm(de))/(1+norm(de));
     dq=(1+dq0)*de;
+    delta_quat = [dq0;dq];
+    delta_quat = delta_quat./norm(delta_quat);
     
     Cq=quaternion2matrix(q_mean);
-    Cdq=quaternion2matrix([dq0;dq]);
+    Cdq=quaternion2matrix(delta_quat);
     
-    C_q_world_IMU=Cdq*Cq;
+%   C_q_world_IMU=Cdq*Cq;
+%   C_q_world_IMU=Cq*Cdq;
+    C_q_world_IMU = quaternion2matrix(quaternionproduct(delta_quat, q_mean));
+
     C_q_IMU_camera=quaternion2matrix(q_IMU_camera(:,i));
     
     p_IMU_pts=C_q_world_IMU(1:3, 1:3)'*bsxfun(@minus,p_world_pts,p_world_IMU(:,i));
