@@ -25,7 +25,7 @@ xk1 = sum( bsxfun(@times, sigmaPointsk1, Weightsm'), 2);
 
 % Calculate the new state covariance matrix
 % Eq 72
-stateDiff = bsxfun(@minus, sigmaPoints(1:length(x), :), xk1);
+stateDiff = bsxfun(@minus, sigmaPointsk1(1:length(x), :), xk1);
 Pk1 = zeros(size(P));
 for i = 1:size(stateDiff,2) % Not sure how to do this without a for loop
     Pk1 = Pk1 + Weightsc(i)*stateDiff(:,i)*stateDiff(:,i)';
