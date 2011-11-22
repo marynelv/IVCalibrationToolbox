@@ -17,11 +17,14 @@ if ~exist('knots','var')
     knots=[0,0,0:nknots-5,nknots-5,nknots-5];
 end
 
-numpts=numpoints/sum(diff(knots));
+numpts=floor(numpoints/sum(diff(knots)));
+numptss=repmat(numpts,1,ncontrol-3);
+numptss(end)=numptss(end)+numpoints-sum(numptss);
+
 P=[];
 
 for i=1:ncontrol-3
-    P=[P,bspline3(Pcontrol(:,i:i+3),knots(i:i+5),numpts)];
+    P=[P,bspline3(Pcontrol(:,i:i+3),knots(i:i+5),numptss(i))];
 end
 
 end
