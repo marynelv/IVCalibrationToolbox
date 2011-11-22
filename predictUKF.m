@@ -15,7 +15,7 @@ ukf_N = length(x_aug);
 
 % Pass the sigma points through the process model
 % Eq 70
-sigmaPointsk1 =  processModelTranslation(sigmaPoints, u, dt);
+sigmaPointsk1 = process_fun(sigmaPoints, process_params);
 
 % Find the new estimate for the state vector based on the weighted sum of
 % the processed sigma points
