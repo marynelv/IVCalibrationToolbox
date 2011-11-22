@@ -21,7 +21,7 @@ meanz=mean(landmarks(3,:),2);
 figure(20); subplot(1,2,1); plot(landmarks(1,:),landmarks(2,:),'b.');
 mx=max(landmarks,[],2);
 mn=min(landmarks,[],2);
-axis([mn(1)-100,mx(1)+100,mn(2)-100,mx(2)+100]);
+axis([mn(1)-20,mx(1)+20,mn(2)-20,mx(2)+20]);
 axis equal;
 
 hold on;
