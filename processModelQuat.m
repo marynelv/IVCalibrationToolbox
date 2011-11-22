@@ -52,11 +52,7 @@ sigma_error_q_k1 = zeros(4, numSigmaPoints);
 
 for i=1:numSigmaPoints
     sigma_q_w_i(:, i) = quaternionproduct(q_error(:,i), expected_q_w_i)';
-    
-    skew_w = [  0           -w_i(3,i)   w_i(2,i);
-        w_i(3,i)     0          -w_i(1,i);
-        -w_i(2,i)    w_i(1,i)     0];
-    
+    skew_w = skewSymmetric(w_i(:,i));    
     omega_w = [ 0,     -w_i(:,i)';
         w_i(:,i),   -skew_w];
     
