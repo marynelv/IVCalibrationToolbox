@@ -1,4 +1,4 @@
-function [x_next, process_out]=processModelQuat(xa,params)
+function [x_next]=processModelQuat(xa,params)
 
 %
 % xa_next=processModelTranslation(xa,v_world,timestep);
@@ -68,7 +68,5 @@ sigma_mrp_k1 = bsxfun(@rdivide, sigma_error_q_k1(2:4,:), (1 + sigma_error_q_k1(1
 
 x_next = [ sigma_mrp_k1 ];
 
-% Send back the mean quaternion at the next time step
-process_out{1} = sigma_qk1(:,1);
 
 end
