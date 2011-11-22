@@ -71,6 +71,7 @@ pts_w = bsxfun(@plus, pts_min+(pts_max-pts_min).*rand(3,numPoints), pts_center);
 q_w_c = zeros(4,nSteps);
 v_w_c = zeros(3,nSteps);
 p_w_c=generatePosBspline(pts_w,nSteps);
+p0_w_c=p_w_c(:,1);
 %p_w_c = zeros(3,nSteps);
 
 %v_w_c(:,1) = v0_w_c;
@@ -103,7 +104,7 @@ end
 %v_w_i=[v_w_i,v_w_i(:,end)];
 %a_w_i=[a_w_i,a_w_i(:,end-1:end)];
 
-%[v_w_i,a_w_i,omega_w_i,alpha_w_i]=getVelocityAcceleration(p_w_i,q_w_i,t);
+[v_i,a_i,omega_i,alpha_i]=getVelocityAcceleration(p_w_i,q_w_i,t,gravity);
 
 
 %% Position camera axis throughout simulation
@@ -128,35 +129,36 @@ for i = 1:length(t)
 end
 
 %% Rename stuff like before
-%a_w = a_w_i;
-%v_w = v_w_i;
-%p_w = p_w_i;
+a_w = a_i;
+v_w = v_i;
+p_w = p_w_i;
 
-%std_dev_noise_accel = 0;
-%std_dev_bias_accel = 0;
-%std_dev_noise_gyro = 0;
+std_dev_noise_accel = 0;
+std_dev_bias_accel = 0;
+std_dev_noise_gyro = 0;
 
-%bias_accel = zeros(size(a_w_i));
-%noise_accel = std_dev_noise_accel*randn(size(a_w_i));
-%accel_i_measured = a_w_i + bias_accel + noise_accel;
+bias_accel = zeros(size(a_i));
+noise_accel = std_dev_noise_accel*randn(size(a_i));
+accel_i_measured = a_i + bias_accel + noise_accel;
 
 %w = repmat([0 0 0]', 1, length(t));
-%bias_gyro = zeros(size(w));
-%noise_gyro = std_dev_noise_gyro*randn(size(w));
-%gyro_i_measured = w + bias_gyro + noise_gyro;
+w=omega_i;
+bias_gyro = zeros(size(w));
+noise_gyro = std_dev_noise_gyro*randn(size(w));
+gyro_i_measured = w + bias_gyro + noise_gyro;
 
-%imuData = zeros(length(t), 31);
-%imuData(:,3) = t;
-%imuData(:,17:19) = gyro_i_measured';
-%imuData(:,29:31) = accel_i_measured';
+imuData = zeros(length(t), 31);
+imuData(:,3) = t;
+imuData(:,17:19) = gyro_i_measured';
+imuData(:,29:31) = accel_i_measured';
 
-%camData = zeros(length(t), 3);
-%camData(:,3) = t;
+camData = zeros(length(t), 3);
+camData(:,3) = t;
 
 
 %% Create noisy measurements
-%noisy_v_w = v_w + std_v_w*randn(size(v_w));
-%noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
+noisy_v_w = v_w + std_v_w*randn(size(v_w));
+noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_c));
 
 %% Plot
 if plotFlag
