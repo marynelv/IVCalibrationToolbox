@@ -30,9 +30,9 @@ a_w_c = repmat([-0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration
 p0_w_c = [0 0 0]';                          % initial camera position in the world
 v0_w_c = [0.3 0.8 -0.1]*timeStep';          % initial camera velocity
 
-% q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
+q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
 % p_i_c = [ 10 0 0]';                          % translation from IMU to camera
-q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
+%q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
 p_i_c = [ 10 0 0]';                          % translation from IMU to camera
 
 
@@ -104,7 +104,7 @@ end
 %v_w_i=[v_w_i,v_w_i(:,end)];
 %a_w_i=[a_w_i,a_w_i(:,end-1:end)];
 
-[v_i,a_i,omega_i,alpha_i]=getVelocityAcceleration(p_w_i,q_w_i,t,gravity);
+[v_i,a_i,omega_i,alpha_i,v_w]=getVelocityAcceleration(p_w_i,q_w_i,t,gravity);
 
 
 %% Position camera axis throughout simulation
@@ -130,7 +130,7 @@ end
 
 %% Rename stuff like before
 a_w = a_i;
-v_w = v_i;
+%v_w = v_i;
 p_w = p_w_i;
 
 std_dev_noise_accel = 0;

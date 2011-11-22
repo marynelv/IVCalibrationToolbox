@@ -1,4 +1,4 @@
-function [V,A,Omega,Alpha]=getVelocityAcceleration(P,Q,t,gravityvec)
+function [V,A,Omega,Alpha,Vw]=getVelocityAcceleration(P,Q,t,gravityvec)
 
 n=size(P,2);
 V=zeros(3,n-1);
@@ -32,6 +32,7 @@ for i=1:n-1
 end
 
 V=[V,V(:,end)];
+Vw=[dPdt,dPdt(:,end)];
 Omega=[Omega,Omega(:,end)];
 A=[A,A(:,end-1:end)];
 Alpha=[Alpha,Alpha(:,end-1:end)];
