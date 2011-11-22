@@ -64,7 +64,7 @@ for i=1:numSigmaPoints
     
     sigma_qk1(:,i) = sigma_q_w_i(:,i) + timestep * dq_dt(:,i);
     
-    sigma_error_q_k1(:,i) = quaternionproduct(sigma_qk1(:,i), quaternionconjugate(sigma_qk1(:,1))')';
+    sigma_error_q_k1(:,i) = quaternionproduct(sigma_qk1(:,i), quaternionconjugate(sigma_q_w_i(:,1))')';
     
 end
 

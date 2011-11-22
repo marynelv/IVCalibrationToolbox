@@ -1,4 +1,4 @@
-function [ xk1, Pk1, process_out ] = predictUFK( x, process_fun, process_params, P, Q, ukf_alpha, ukf_beta )
+function [ xk1, Pk1 ] = predictUFK( x, process_fun, process_params, P, Q, ukf_alpha, ukf_beta )
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,8 +15,7 @@ ukf_N = length(x_aug);
 
 % Pass the sigma points through the process model
 % Eq 70
-% sigmaPointsk1 =  processModelTranslation(sigmaPoints, u, dt);
-[sigmaPointsk1, process_out] = process_fun(sigmaPoints, process_params);
+sigmaPointsk1 =  processModelTranslation(sigmaPoints, u, dt);
 
 % Find the new estimate for the state vector based on the weighted sum of
 % the processed sigma points
