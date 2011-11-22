@@ -36,8 +36,8 @@ j = 1;
 nowTime = -0.01;
 
 %% Initial estimate
-% x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
-x(1:3,1) = [0.4 0.4 0.4]';
+x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
+%x(1:3,1) = [0.4 0.4 0.4]';
 P = diag([0.5 0.5 0.5]);
 
 
