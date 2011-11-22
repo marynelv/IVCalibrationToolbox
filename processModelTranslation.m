@@ -1,4 +1,4 @@
-function x_next=processModelTranslation(xa,params)
+function [x_next, out_params]=processModelTranslation(xa,params)
 
 %
 % xa_next=processModelTranslation(xa,v_world,timestep);
@@ -16,5 +16,5 @@ function x_next=processModelTranslation(xa,params)
 
 % assume that we get noise as well in x
 x_next=bsxfun(@plus,xa(1:3,:)-xa(4:6,:),bsxfun(@times,v_world,timestep));
-
+out_params = [];
 end
