@@ -159,6 +159,13 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         %         axis equal
         %         axis vis3d
         
+        
+        subplot(2,1,1);
+        plotQuaternion( x ); hold on;
+        plotQuaternion( q_w_i(:,i) ); 
+        axis vis3d;
+        hold off;
+        
         subplot(2,1,2);
         plot(1:count,distanceError(1:count));
         maxErr = max(distanceError);
@@ -166,11 +173,6 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         xlabel('Time');
         ylabel('Distance to ground truth');
         title('Squared Error');
-        
-        figure(2)
-        clf
-        plotQuaternion( x )
-        plotQuaternion( q_w_i(:,i) )
         
     end
 end
