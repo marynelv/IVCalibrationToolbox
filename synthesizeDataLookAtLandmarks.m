@@ -18,7 +18,7 @@
 clear
 close all
 clc
-rng(1);                                     % repeatable simulation results
+%rng(1);                                     % repeatable simulation results
 
 
 %% Setup parameters
@@ -30,9 +30,9 @@ a_w_c = repmat([-0.3 0.8 -0.1]', 1, length(t));   % constant linear acceleration
 p0_w_c = [0 0 0]';                          % initial camera position in the world
 v0_w_c = [0.3 0.8 -0.1]*timeStep';          % initial camera velocity
 
-% q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
+ q_i_c = [ 0.7071 0 0 0.7071 ]';                       % rotation from IMU to camera
 % p_i_c = [ 10 0 0]';                          % translation from IMU to camera
-q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
+%q_i_c = [ 1 0 0 0 ]';                       % rotation from IMU to camera
 p_i_c = [ 10 0 0]';                          % translation from IMU to camera
 
 
@@ -70,11 +70,13 @@ pts_w = bsxfun(@plus, pts_min+(pts_max-pts_min).*rand(3,numPoints), pts_center);
 %% Generate camera path first and find its orientation
 q_w_c = zeros(4,nSteps);
 v_w_c = zeros(3,nSteps);
+%p_w_c=generatePosBspline(pts_w,nSteps);
 p_w_c = zeros(3,nSteps);
 
 v_w_c(:,1) = v0_w_c;
 p_w_c(:,1) = p0_w_c;
 q_w_c(:,1) = cameraOrientation(p_w_c(:,1), v_w_c(:,1), pts_center);
+
 
 for i = 2:nSteps
     dt = t(i) - t(i-1);                 
@@ -83,6 +85,8 @@ for i = 2:nSteps
     
     q_w_c(:,i) = cameraOrientation(p_w_c(:,i), v_w_c(:,i), pts_center);
 end
+
+q_w_c(:,end)=q_w_c(:,end-1);
 
 
 %% Position and orientation of IMU in the world frame 
@@ -98,6 +102,8 @@ v_w_i=bsxfun(@rdivide,diff(p_w_i,1,2),diff(t,1));
 a_w_i=bsxfun(@rdivide,diff(v_w_i,1,2),diff(t(1:end-1),1));
 v_w_i=[v_w_i,v_w_i(:,end)];
 a_w_i=[a_w_i,a_w_i(:,end-1:end)];
+
+%[v_w_i,a_w_i,omega_w_i,alpha_w_i]=getVelocityAcceleration(p_w_i,q_w_i,t);
 
 
 %% Position camera axis throughout simulation
