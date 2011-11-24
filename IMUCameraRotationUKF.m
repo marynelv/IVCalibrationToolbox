@@ -35,11 +35,16 @@ nowTime = -0.01;
 
 %% Initial estimate
 % x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
-expected_rad_error = 10 * pi / 180;
+expected_rad_error = .001 * pi / 180;
 init_rad_error = 0.2* expected_rad_error;
 rand_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
 % x(1:4,1) = quaternionproduct(q_w_i(:,i), rand_quat);
-x(1:4,1) = q_w_i(:,1);
+%x(1:4,1) = q_w_i(:,1);
+%x(1:4,1)=q_i_c;
+clear x;
+x=zeros(4,1);
+x(1:4,1)=q_i_c;
+%x(1:4,1)=rand_quat;
 P = expected_rad_error * eye(3);
 
 
@@ -66,30 +71,30 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         %% Prediction step
         pastTime = nowTime;
         nowTime = imuTime;
-        dt = nowTime - pastTime;
-        
-        u = gyro_i_measured(1:3, i);
-        
-        process_params{1} = u;
-        process_params{2} = dt;
-        process_params{3} = x(1:4);
-        process_handle = @processModelQuat;
-        
-        x_se = [0 0 0]'; % State error vector in MRP
-        [x_se, P] = predictUFK(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
-        
-        mrp_error = x_se(1:3);
-        % Convert MRP error vector to quaternion error
-        norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
-        dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
-        
-        q_error = [ dq0;
-            bsxfun(@times,(1+dq0),mrp_error)];
-        
-        prev_quat = x(1:4);
-        quat_new = quaternionproduct(q_error, prev_quat)';
-        x(1:4) = quat_new./norm(quat_new);
-    P
+%         dt = nowTime - pastTime;
+%         
+%         u = gyro_i_measured(1:3, i);
+%         
+%         process_params{1} = u;
+%         process_params{2} = dt;
+%         process_params{3} = x(1:4);
+%         process_handle = @processModelQuat;
+%         
+%         x_se = [0 0 0]'; % State error vector in MRP
+%         [x_se, P, process_out] = predictUFK(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
+%         mean_q = process_out{1};
+%         
+%         mrp_error = x_se(1:3);
+%         % Convert MRP error vector to quaternion error
+%         norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
+%         dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
+%         
+%         q_error = [ dq0;
+%             bsxfun(@times,(1+dq0),mrp_error)];
+%         
+%         quat_new = quaternionproduct(q_error, mean_q)';
+%         x(1:4) = quat_new./norm(quat_new);
+%     P
     i = i + 1;
     else
         %% Correction Step
@@ -105,17 +110,17 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
         p_world_IMU = repmat(p_w(:,j), 1, 2*ukf_N+1);
-        q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
+        q_world_IMU = repmat(q_w_i(:,j), 1, 2*ukf_N+1);
         p_world_pts = pts_w(1:3, :);
         
 %         K = eye(3);
         obs_params{1} = x(1:4);
         obs_params{2} = p_world_IMU;
         obs_params{3} = p_IMU_camera;
-        obs_params{4} = q_IMU_camera;
+        obs_params{4} = q_world_IMU;
         obs_params{5} = p_world_pts;
         obs_params{6} = K;
-        obs_handle = @measurementModelRotation;
+        obs_handle = @measurementModelIMUCameraRotation;
         
 %         [M,Pp,K,MU,S,LH] = UKF_UPDATE1(x_se,P,z,obs_handle,R,obs_params,ukf_alpha,ukf_beta);
         [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
@@ -137,7 +142,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     end
     
     %% Distance error
-    distanceError(1,count) = findQuaternionError(x, q_w_i(:,i));
+    distanceError(1,count) = findQuaternionError(x, q_i_c);
     
     %% Plot
     accumQuat(:,count) = x;

@@ -35,22 +35,28 @@ nowTime = -0.01;
 
 %% Initial estimate
 % x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
-expected_rad_error = 10 * pi / 180;
+expected_rad_error = .001 * pi / 180;
 init_rad_error = 0.2* expected_rad_error;
 rand_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
 % x(1:4,1) = quaternionproduct(q_w_i(:,i), rand_quat);
-x(1:4,1) = q_w_i(:,1);
-P = expected_rad_error * eye(3);
-
+%x(1:4,1) = q_w_i(:,1);
+%x(1:4,1)=q_i_c;
+clear x;
+nx=7;
+x=zeros(nx,1);
+%x(1:3,1)=10*randn(3,1); x(4:7,1)=rand_quat;
+x(1:3)=10*rand(3,1); x(4:7)=rand_quat;
+P=.001*eye(nx-1);
 
 
 %% Initialize storage matrices
 numCamMeasurements = size(observed_pts_c, 2);
 numImuMeasurements = length(imuData);
 numPoses = numImuMeasurements + numCamMeasurements;
-accumPoses = zeros(3,numPoses);
+accumPoses = zeros(nx,numPoses);
 accumQuat = NaN * ones(4,numPoses);
-distanceError = zeros(1, numPoses);
+distanceQuatError = zeros(1, numPoses);
+distancePosError = zeros(1, numPoses);
 
 
 %% Begin Kalman filter
@@ -66,30 +72,30 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         %% Prediction step
         pastTime = nowTime;
         nowTime = imuTime;
-        dt = nowTime - pastTime;
-        
-        u = gyro_i_measured(1:3, i);
-        
-        process_params{1} = u;
-        process_params{2} = dt;
-        process_params{3} = x(1:4);
-        process_handle = @processModelQuat;
-        
-        x_se = [0 0 0]'; % State error vector in MRP
-        [x_se, P] = predictUFK(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
-        
-        mrp_error = x_se(1:3);
-        % Convert MRP error vector to quaternion error
-        norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
-        dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
-        
-        q_error = [ dq0;
-            bsxfun(@times,(1+dq0),mrp_error)];
-        
-        prev_quat = x(1:4);
-        quat_new = quaternionproduct(q_error, prev_quat)';
-        x(1:4) = quat_new./norm(quat_new);
-    P
+%         dt = nowTime - pastTime;
+%         
+%         u = gyro_i_measured(1:3, i);
+%         
+%         process_params{1} = u;
+%         process_params{2} = dt;
+%         process_params{3} = x(1:4);
+%         process_handle = @processModelQuat;
+%         
+%         x_se = [0 0 0]'; % State error vector in MRP
+%         [x_se, P, process_out] = predictUFK(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
+%         mean_q = process_out{1};
+%         
+%         mrp_error = x_se(1:3);
+%         % Convert MRP error vector to quaternion error
+%         norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
+%         dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
+%         
+%         q_error = [ dq0;
+%             bsxfun(@times,(1+dq0),mrp_error)];
+%         
+%         quat_new = quaternionproduct(q_error, mean_q)';
+%         x(1:4) = quat_new./norm(quat_new);
+%     P
     i = i + 1;
     else
         %% Correction Step
@@ -101,27 +107,27 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         R = 0.1^2 * eye(length(z));
         
         x_se = [0 0 0]'; % State error vector in MRP
-        ukf_N = length(x_se);
+        xbar=[x(1:3);x_se];
+        ukf_N = length(xbar);
         
         p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
         p_world_IMU = repmat(p_w(:,j), 1, 2*ukf_N+1);
-        q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
+        q_world_IMU = repmat(q_w_i(:,j), 1, 2*ukf_N+1);
         p_world_pts = pts_w(1:3, :);
         
 %         K = eye(3);
-        obs_params{1} = x(1:4);
+        obs_params{1} = x(4:7);
         obs_params{2} = p_world_IMU;
-        obs_params{3} = p_IMU_camera;
-        obs_params{4} = q_IMU_camera;
-        obs_params{5} = p_world_pts;
-        obs_params{6} = K;
-        obs_handle = @measurementModelRotation;
+        obs_params{3} = q_world_IMU;
+        obs_params{4} = p_world_pts;
+        obs_params{5} = K;
+        obs_handle = @measurementModelIMUCamera;
         
 %         [M,Pp,K,MU,S,LH] = UKF_UPDATE1(x_se,P,z,obs_handle,R,obs_params,ukf_alpha,ukf_beta);
-        [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
+        [ xbar1, P ] = correctUKF( xbar, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
         
 %           mrp_error = M(1:3);
-        mrp_error = x_se(1:3);
+        mrp_error = xbar1(4:end);
         % Convert MRP error vector to quaternion error
         norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
         dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
@@ -129,18 +135,20 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         q_error = [ dq0;
             bsxfun(@times,(1+dq0),mrp_error)];
 %         q_error = q_error./norm(q_error);
-        quat_new = quaternionproduct(q_error, x(1:4))';
+        quat_new = quaternionproduct(q_error, x(4:7))';
         quat_new = quat_new ./ norm(quat_new);
-        x(1:4) = quat_new;
+        x(4:7) = quat_new;
+        x(1:3)=xbar1(1:3);
         
         j = j + 1;
     end
     
     %% Distance error
-    distanceError(1,count) = findQuaternionError(x, q_w_i(:,i));
+    distanceQuatError(1,count) = findQuaternionError(x(4:7), q_i_c);
+    distancePosError(1,count)=norm(x(1:3)-p_i_c);
     
     %% Plot
-    accumQuat(:,count) = x;
+    accumPoses(:,count) = x;
     %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
     count = count + 1;
     x;
@@ -160,18 +168,20 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         
         subplot(2,1,1);
-        plotQuaternion( x ); hold on;
-        plotQuaternion( q_w_i(:,i) ); 
-        axis vis3d;
-        hold off;
-        
-        subplot(2,1,2);
-        plot(1:count,distanceError(1:count));
-        maxErr = max(distanceError);
-        axis([0 numPoses 0 maxErr]);
+        plot(1:count,distancePosError(1:count));
+        maxPosErr = max(distancePosError);
+        axis([0 numPoses 0 maxPosErr]);
         xlabel('Time');
         ylabel('Distance to ground truth');
-        title('Squared Error');
+        title('Squared Error for position');
+        
+        subplot(2,1,2);
+        plot(1:count,distanceQuatError(1:count));
+        maxQuatErr = max(distanceQuatError);
+        axis([0 numPoses 0 maxQuatErr]);
+        xlabel('Time');
+        ylabel('Distance to ground truth');
+        title('Squared Error for quaternion');
         
     end
 end
