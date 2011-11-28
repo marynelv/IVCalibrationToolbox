@@ -17,7 +17,7 @@ w_i = u(4:6);
 
 % State vector
 position   = xa(1:3,:);  % p_w
-mrp_error  = xa(4:6,:);   % Error of the world to IMU quaterion in MRPs
+mrp_error  = xa(4:6,:);  % Error of the world to IMU quaterion in MRPs
 velocity   = xa(7:9,:);  % v_w
 % Augmented portion of the state vector
 noise_acc  = xa(10:12,:);
@@ -53,7 +53,7 @@ for i=1:numSigmaPoints
     % estimated orientation of the IMU in the world
     sigma_q_w_i(:,i) = quaternionproduct(dq, q_w_i);
 
-    % compute real acceperation
+    % compute real acceleration
     C_q_world_IMU = quaternion2matrix(sigma_q_w_i(:,i));
     real_accel(:,i) = C_q_world_IMU(1:3, 1:3)'*a_i_minus_noise(:,i) + gravity;    
     
@@ -74,8 +74,8 @@ end
 % Convert the delta quaternions to MRPs and return them.
 sigma_mrp_k1 = bsxfun(@rdivide, sigma_delta_q_k1(2:4,:), (1 + sigma_delta_q_k1(1,:)));
 
-x_next(1:3,:) = position + velocity*timestep;
+x_next(1:3,:) = position + velocity.*timestep;
 x_next(4:6,:) = sigma_mrp_k1;
-x_next(7:9,:) = velocity + real_accel*timestep;
+x_next(7:9,:) = velocity + real_accel.*timestep;
 
 end

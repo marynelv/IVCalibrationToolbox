@@ -76,7 +76,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         process_handle = @processModelQuat;
         
         x_se = [0 0 0]'; % State error vector in MRP
-        [x_se, P] = predictUFK(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
+        [x_se, P] = predictUKF(x_se, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
         
         mrp_error = x_se(1:3);
         % Convert MRP error vector to quaternion error
