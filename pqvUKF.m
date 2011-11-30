@@ -107,50 +107,50 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         P
         i = i + 1;        
     else
-%         %% Correction Step
-%         
-%         % Perform correction step
-%         z = noisy_observed_pts_c(:,j);
-%         R = 0.1^2 * eye(length(z));
-%         
-%         x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
-%         ukf_N = length(x_se);
-%         
-%         p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
-%         q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
-%         p_world_pts = pts_w(1:3, :);
-%         
-%         obs_params{1} = prev_q;
-%         obs_params{2} = p_IMU_camera;
-%         obs_params{3} = q_IMU_camera;
-%         obs_params{4} = p_world_pts;
-%         obs_params{5} = K;
-%         obs_handle = @measurementModelPQV;
-%         
-%         [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
-%         
-%         mrp_error = x_se(4:6);
-%         % Convert MRP update vector to quaternion update
-%         norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
-%         dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
-%         
-%         q_error = [ dq0;
-%             bsxfun(@times,(1+dq0),mrp_error)];
-%         
-%         quat_new = quaternionproduct(q_error, prev_q);
-%         quat_new = quat_new./norm(quat_new);
-%         
-%         x = [x_se(1:3); quat_new; x_se(7:9)];
-%         
+        %% Correction Step
+        
+        % Perform correction step
+        z = noisy_observed_pts_c(:,j);
+        R = 0.1^2 * eye(length(z));
+        
+        x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
+        ukf_N = length(x_se);
+        
+        p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
+        q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
+        p_world_pts = pts_w(1:3, :);
+        
+        obs_params{1} = prev_q;
+        obs_params{2} = p_IMU_camera;
+        obs_params{3} = q_IMU_camera;
+        obs_params{4} = p_world_pts;
+        obs_params{5} = K;
+        obs_handle = @measurementModelPQV;
+        
+        [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
+        
+        mrp_error = x_se(4:6);
+        % Convert MRP update vector to quaternion update
+        norm_mrp_error = sqrt(sum(mrp_error.^2, 1));
+        dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
+        
+        q_error = [ dq0;
+            bsxfun(@times,(1+dq0),mrp_error)];
+        
+        quat_new = quaternionproduct(q_error, prev_q);
+        quat_new = quat_new./norm(quat_new);
+        
+        x = [x_se(1:3); quat_new; x_se(7:9)];
+        
          j = j + 1;
     end
     
     if (i < numImuMeasurements)
         
         %% Distance error
-        distanceError(1,count) = norm(x(1:3) - p_w(:,i+1));
-        velocityError(1,count) = norm(x(8:10) - v_w(:,i));
-        orientationError(1,count) = findQuaternionError(x(4:7), q_w_i(:,i+1));
+        distanceError(1,count) = norm(x(1:3) - p_w(:,i-1));
+        velocityError(1,count) = norm(x(8:10) - v_w(:,i-1));
+        orientationError(1,count) = findQuaternionError(x(4:7), q_w_i(:,i-1));
 
         %% Plot
         accumPoses(:,count) = x(1:3);
