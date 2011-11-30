@@ -55,7 +55,7 @@ for i=1:numSigmaPoints
 
     % compute real acceleration
     C_q_world_IMU = quaternion2matrix(sigma_q_w_i(:,i));
-    real_accel(:,i) = C_q_world_IMU(1:3, 1:3)'*a_i_minus_noise(:,i) + gravity;    
+    real_accel(:,i) = C_q_world_IMU(1:3, 1:3)*a_i_minus_noise(:,i) + gravity;    
     
     % propagate quaternion in time
     skew_w = skewSymmetric(real_w(:,i));  

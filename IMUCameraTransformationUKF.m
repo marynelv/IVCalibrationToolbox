@@ -46,6 +46,7 @@ nx=7;
 x=zeros(nx,1);
 %x(1:3,1)=10*randn(3,1); x(4:7,1)=rand_quat;
 x(1:3)=10*rand(3,1); x(4:7)=rand_quat;
+xstart=x;
 P=.001*eye(nx-1);
 
 
@@ -151,7 +152,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     accumPoses(:,count) = x;
     %     accumOrient(:,count) = cmatrix(x(1:3))*[0 0 1]';
     count = count + 1;
-    x;
+    x
     
     if mod(count, 10) == 1
         figure(1)
