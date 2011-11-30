@@ -23,34 +23,34 @@ close all
 clc
 % Seed random number generator so that we have repeatable simulation
 % results
-rng(1);
+rng(2);
 
 %% Setup parameters: time, body translational acceleration, body rotation velocity, noise characteristics
-plotFlag = 1;
-t = 0:0.01:20; % Simulation run time and time step
+plotFlag = 0;
+t = 0:0.01:2; % Simulation run time and time step
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
-a_i = repmat([0.5 -.5 1]', 1, length(t));
+a_i = repmat([0.05 -.08 0.1]', 1, length(t));
 % a_i = repmat([0 0.8 0]', 1, length(t));
 % a_i = repmat([0.3 0 0]', 1, length(t));
 
 
 % w = -pi + 2*pi*rand(3,length(t)); %in rad/second
 % w = repmat([.1 .3 0.5]', 1, length(t));
-w = repmat([.20 0 -.3]', 1, length(t));
+w = repmat([0 0 0.5]', 1, length(t));
 % w = zeros(3, length(t));
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
 euler_i_c = [0 0 0]';
 p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
 
-% std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
+std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
 std_dev_noise_accel = 0;
 % std_dev_bias_accel = 0.005 * 9.80665; % m/s^3
 std_dev_bias_accel = 0;
 
-% std_dev_noise_gyro = 0.002 * 300 * pi/180; % rad/s
+std_dev_noise_gyro = 0.002 * 300 * pi/180; % rad/s
 std_dev_noise_gyro = 0;
 
 gravity = [0 0 9.81]';
@@ -58,10 +58,10 @@ gravity = [0 0 9.81]';
 
 % Parameters for 3D visual features
 numPoints = 50;
-pts_min = -100;
-pts_max = 100;
-% std_pixel_noise = 0.1;
+pts_min = [-20 -20 5]';
+pts_max = [20 20 20]';
 std_pixel_noise = 0.1;
+std_pixel_noise = 0.0;
 
 std_v_w = 0.1;
 
@@ -73,7 +73,7 @@ T_i_c = rotx(euler_i_c(1))*roty(euler_i_c(2))*rotz(euler_i_c(3));
 T_i_c(1:3,4) = p_i_c;
 q_i_c = matrix2quaternion(T_i_c);
 
-pts_w = pts_min + (pts_max-pts_min).*rand(3,numPoints);
+pts_w = bsxfun(@plus, pts_min, bsxfun(@times, (pts_max-pts_min), rand(3,numPoints)));
 pts_w = [pts_w; ones(1, numPoints)];
 
 
