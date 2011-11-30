@@ -44,12 +44,13 @@ nx=3+3+4; % p_w_i,  p_i_c, q_i_c
 nP=3+3+3; % p_w_i,  p_i_c, de_i_c
 x=zeros(nx,1); 
 %x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
-x(1:3)=p_w_i(:,1)+rand(3,1); x(4:6)=2*randn(3,1); x(7:end)=q_i_c+rand_quat;
-%x(1:3)=p_w_i(:,1); x(4:6)=10*randn(3,1); x(7:end)=rand_quat;
+%x(1:3)=p_w_i(:,1)+rand(3,1); x(4:6)=2*randn(3,1); x(7:end)=q_i_c+rand_quat;
+%qstart=q_i_c+rand(4,1);
+x(1:3)=p_w_i(:,1); x(4:6)=10*rand(3,1); x(7:end)=rand_quat;%normalize(qstart);
+xstart=x;
 %x(1:3,1) = [0.4 0.4 0.4]';
 %P = diag([0.5 0.5 0.5]);
-P=.5*eye(nP);
-
+P=.001*eye(nP);
 
 
 %% Initialize storage matrices
@@ -78,7 +79,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         nowTime = imuTime;
         dt = nowTime - pastTime;
         
-        u = noisy_v_w(1:3, i);   
+        %u = noisy_v_w(1:3, i); 
+        u=v_w(1:3,i);
         
         process_params{1} = u;
         process_params{2} = dt;
@@ -92,10 +94,12 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         %% Correction Step
 
         % Perform correction step
-        z = noisy_observed_pts_c(:,j);
+        %z = noisy_observed_pts_c(:,j);
+        z=observed_pts_c(:,j);
 %         R = reshape(camData(j,11:46), 6, 6);
 %         R = std_pixel_noise^2 * eye(length(z));
-        R = 0.1^2 * eye(length(z));
+        %R = 0.1^2 * eye(length(z));
+        R=0.0001^2*eye(length(z));
         
         x_se = [0 0 0]'; % State error vector in MRP
         xbar=[x(1:6);x_se];
