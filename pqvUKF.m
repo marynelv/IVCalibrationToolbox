@@ -36,10 +36,11 @@ Q = [Qacc zeros(3); zeros(3) Qrot];
 %% Starting index
 i = 2;
 j = 2;
-nowTime = -0.01;
+nowTime = imuData(i-1,3);
 
 %% Initial estimate
-x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i-1)]; % easy as ground truth location
+% x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i-1)]; % easy as ground truth location
+x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i)]; % easy as ground truth location
 
 Ppos = diag([0.5 0.5 0.5]);
 Pori = (10 * pi / 180)* eye(3);
@@ -73,13 +74,14 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     % Get previous orientation belief
     prev_q = x(4:7);
     
+%    if (imuTime <= camTime)
     if (imuTime <= camTime)
         %% Prediction step
         pastTime = nowTime;
         nowTime = imuTime;
         dt = nowTime - pastTime;
         
-        u = [accel_i_measured(:,i-1); gyro_i_measured(:, i)];
+        u = [accel_i_measured(:,i); gyro_i_measured(:, i)];
         
         process_params{1} = u;
         process_params{2} = dt;
@@ -196,7 +198,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Orientation Error');
 
-            pause
+            %pause
         end
     
     end
