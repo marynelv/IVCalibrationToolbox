@@ -4,7 +4,7 @@
 % t: 1xn
 % dqdt:  4x(n-1) quaternion derivative
 % qdiff: 4x(n-1) quaternion difference (q_{t+1} * q_{t}^*)
-function [dqdt, qdiff] =quaternionDerivative(q, t)
+function [dqdt, qdiff] = quaternionDerivative(q, t)
 
 N = size(t, 2);
 dqdt = zeros(4, N-1);

@@ -104,7 +104,7 @@ end
 %v_w_i=[v_w_i,v_w_i(:,end)];
 %a_w_i=[a_w_i,a_w_i(:,end-1:end)];
 
-[v_i,a_i,omega_i,alpha_i,v_w]=getVelocityAcceleration(p_w_i,q_w_i,t,gravity);
+[v_i,a_i,omega_i,~,v_w]=getVelocityAcceleration(p_w_i,q_w_i,t,gravity);
 
 
 %% Position camera axis throughout simulation

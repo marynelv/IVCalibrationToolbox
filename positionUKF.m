@@ -73,7 +73,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         process_params{1} = u;
         process_params{2} = dt;
         process_handle = @processModelTranslation;
-        [x P] = predictUFK(x, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
+        [x P] = predictUKF(x, process_handle, process_params, P, Q, ukf_alpha, ukf_beta);
         
         i = i + 1;        
     else        
