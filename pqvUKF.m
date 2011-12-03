@@ -1,5 +1,5 @@
 % Position, orientation and velocity UKF
-clc
+%clc
 close all
 
 %% UKF parameters
@@ -40,12 +40,14 @@ nowTime = imuData(i-1,3);
 
 %% Initial estimate
 % x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i-1)]; % easy as ground truth location
-x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i)]; % easy as ground truth location
+x = [p_w(:,i); q_w_i(:,i); v_w(:,i)]; % easy as ground truth location
+xstartv=x;
 
 Ppos = diag([0.5 0.5 0.5]);
 Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
 P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
+Pstartv=P;
 
 %% Initialize storage matrices and figure
 numCamMeasurements = size(observed_pts_c, 2);
@@ -103,10 +105,11 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         quat_new = quaternionproduct(q_error, prev_q);
         quat_new = quat_new./norm(quat_new);
-        
+        x'
         x = [x_se(1:3); quat_new; x_se(7:9)];
+        x'
         
-        P
+        %P
         i = i + 1;        
     else
         %% Correction Step

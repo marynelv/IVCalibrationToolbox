@@ -32,11 +32,12 @@ Q = 0.1^2 *eye(3);
 % R = diag(R1 ... Rn)
 
 %% Starting index
-i = 1;
-j = 1;
+i = 2;
+j = 2;
 nowTime = -0.01;
 
 %% Initial estimate
+clear x
 x(1:3,1) = p_w(:,i); % Let's make this easy and set it to the ground truth location
 %x(1:3,1) = [0.4 0.4 0.4]';
 P = diag([0.5 0.5 0.5]);
@@ -62,7 +63,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     imuTime = imuData(i,3);
     camTime = camData(j,3);
     
-    if (imuTime < camTime)
+    if (imuTime <= camTime)
         %% Prediction step
         pastTime = nowTime;
         nowTime = imuTime;
@@ -84,7 +85,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
 %         R = reshape(camData(j,11:46), 6, 6);
 %         R = std_pixel_noise^2 * eye(length(z));
         R = 0.1^2 * eye(length(z));
-                
+         
+        ukf_N = length(x);        
+        
         p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
         q_world_IMU = repmat(q_w_i(:,j), 1, 2*ukf_N+1);
         q_IMU_camera = repmat(q_i_c, 1, 2*ukf_N+1);
@@ -104,7 +107,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     end
             
     %% Distance error
-    distanceError(1,count) = norm(x(1:3) - p_w(:,i));
+    distanceError(1,count) = norm(x(1:3) - p_w(:,i-1));
     
     %% Plot
     accumPoses(:,count) = x(1:3);
@@ -113,7 +116,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     x
     
     if mod(count, 10) == 1
-        figure(1)
+        %figure 
         clf
         
         subplot(2,1,1);

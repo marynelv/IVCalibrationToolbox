@@ -3,7 +3,7 @@
 close all
 
 %% UKF parameters
-ukf_alpha = 0.1;
+ukf_alpha = 0.05;
 ukf_beta = 2;
 
 %% x: state vector
@@ -46,6 +46,8 @@ err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init
 
 
 x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
+
+x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); q_i_c]; % easy as ground truth location
 xstart=x;
 
 Ppos = diag([0.5 0.5 0.5]);

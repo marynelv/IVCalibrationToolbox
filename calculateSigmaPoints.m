@@ -24,8 +24,8 @@ Weightsc=zeros(nsigma,1);
 S=sqrt(lambda+N)*chol(P_a_plus,'lower');
 
 sigmaPoints(:,1)=x_ahat_plus;
-sigmaPoints(:,2:N+1)=bsxfun(@plus,x_ahat_plus,S);
-sigmaPoints(:,N+2:2*N+1)=bsxfun(@minus,x_ahat_plus,S);
+sigmaPoints(:,2:N+1)=bsxfun(@plus,x_ahat_plus,S(:,1:N));
+sigmaPoints(:,N+2:2*N+1)=bsxfun(@minus,x_ahat_plus,S(:,1:N));
 
 Weightsm(1)=lambda/(lambda+N);
 Weightsc(1)=lambda/(lambda+N)+(1-alpha*alpha+beta);
