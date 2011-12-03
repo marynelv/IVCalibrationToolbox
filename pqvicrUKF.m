@@ -3,7 +3,7 @@
 close all
 
 %% UKF parameters
-ukf_alpha = 0.05;
+ukf_alpha = .1;
 ukf_beta = 2;
 
 %% x: state vector
@@ -47,13 +47,13 @@ err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init
 
 x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
 
-x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); q_i_c]; % easy as ground truth location
+x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
 xstart=x;
 
-Ppos = diag([0.5 0.5 0.5]);
+Ppos = diag([.5 .5 .5]);
 Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
-Ppic=diag([.05 .05 .05]);
+Ppic=diag([.5 .5 .5]);
 Pqic=(10*pi/180)*eye(3);
 %P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic);
@@ -255,8 +255,6 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             xlabel('Time');
             ylabel('Squared Error');
             title('IMU-Camera Rotation Error');
-
-            
             %pause
         end
     
