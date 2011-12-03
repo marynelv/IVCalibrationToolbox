@@ -39,15 +39,17 @@ j = 2;
 nowTime = imuData(i-1,3);
 
 %% Initial estimate
-% x(1:10,1) = [p_w(:,i); q_w_i(:,i); v_w(:,i-1)]; % easy as ground truth location
-x = [p_w(:,i); q_w_i(:,i); v_w(:,i)]; % easy as ground truth location
-xstartv=x;
+clear x;
+x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1)]; % easy as ground truth location
+xstart=x;
 
 Ppos = diag([0.5 0.5 0.5]);
 Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
-P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
-Pstartv=P;
+Ppic=diag([.05 .05 .05]);
+%P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
+P=blkdiag(Ppos,Pori,Pvel,Ppic);
+Pstart=P;
 
 %% Initialize storage matrices and figure
 numCamMeasurements = size(observed_pts_c, 2);
@@ -56,6 +58,7 @@ numPoses = numImuMeasurements + numCamMeasurements;
 accumPoses = zeros(3,numPoses);
 accumQuat = NaN * ones(4,numPoses);
 distanceError = zeros(1, numPoses);
+icError=zeros(1,numPoses);
 velocityError = zeros(1, numPoses);
 orientationError = zeros(1, numPoses);
 process_params = cell(4,1);
@@ -64,6 +67,7 @@ obs_params = cell(5,1);
 
 h = figure('Name','Position, Orientation and Velocity Estimation', ...
            'NumberTitle','off','Position',[10 10 1000 600]);
+
 
 %% Begin Kalman filter
 count = 1;
@@ -76,23 +80,25 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     % Get previous orientation belief
     prev_q = x(4:7);
     
-%    if (imuTime <= camTime)
     if (imuTime <= camTime)
         %% Prediction step
         pastTime = nowTime;
         nowTime = imuTime;
         dt = nowTime - pastTime;
         
-        u = [accel_i_measured(:,i); gyro_i_measured(:, i)];
+        u = [accel_i_measured(:,i); gyro_i_measured(:,i)];
         
         process_params{1} = u;
         process_params{2} = dt;
         process_params{3} = prev_q;
         process_params{4} = gravity;
-        process_handle = @processModelPQV;
+        process_handle = @processModelPQVIC;
         
-        x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
-        [x_se, P] = predictUKF(x_se, process_handle, process_params, ...
+        %x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
+        x_se = [x(1:3); 0; 0; 0; x(8:10);x(11:13)];
+        %[x_se, Ppred] = predictUKF(x_se, process_handle, process_params, ...
+         %                      P(1:end-3,1:end-3), Q, ukf_alpha, ukf_beta);
+        [x_se, Ppred] = predictUKF(x_se, process_handle, process_params, ...
                                P, Q, ukf_alpha, ukf_beta);
         
         mrp_error = x_se(4:6);
@@ -105,11 +111,15 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         quat_new = quaternionproduct(q_error, prev_q);
         quat_new = quat_new./norm(quat_new);
+        
         x'
-        x = [x_se(1:3); quat_new; x_se(7:9)];
+        %x = [x_se(1:3); quat_new; x_se(7:9);x(end-2:end)];
+        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12)];
         x'
         
-        %P
+        %P=blkdiag(Ppred,P(end-2:end,end-2:end));
+        P=Ppred;
+        
         i = i + 1;        
     else
         %% Correction Step
@@ -118,7 +128,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         z = noisy_observed_pts_c(:,j);
         R = 0.1^2 * eye(length(z));
         
-        x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
+        x_se = [x(1:3); 0; 0; 0; x(8:10);x(end-2:end)]; % State error vector with q in MRP
         ukf_N = length(x_se);
         
         p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
@@ -130,7 +140,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         obs_params{3} = q_IMU_camera;
         obs_params{4} = p_world_pts;
         obs_params{5} = K;
-        obs_handle = @measurementModelPQV;
+        obs_handle = @measurementModelPQVIC;
         
         [ x_se, P ] = correctUKF( x_se, P, R, z, obs_handle, obs_params, ukf_alpha, ukf_beta );
         
@@ -145,7 +155,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         quat_new = quaternionproduct(q_error, prev_q);
         quat_new = quat_new./norm(quat_new);
         
-        x = [x_se(1:3); quat_new; x_se(7:9)];
+        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12)];
         
          j = j + 1;
     end
@@ -156,6 +166,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         distanceError(1,count) = norm(x(1:3) - p_w(:,i-1));
         velocityError(1,count) = norm(x(8:10) - v_w(:,i-1));
         orientationError(1,count) = findQuaternionError(x(4:7), q_w_i(:,i-1));
+        icError(1,count)=norm(x(11:13)-p_i_c);
 
         %% Plot
         accumPoses(:,count) = x(1:3);
@@ -165,7 +176,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             figure(h);
             clf
 
-            subplot(3,2,[1, 3, 5]);
+            subplot(4,2,[1, 3, 5, 7]);
             plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
             hold on;
             plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
@@ -177,7 +188,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             grid on;
             title('Motion Estimation');
 
-            subplot(3,2,2);
+            subplot(4,2,2);
             plot(1:count,distanceError(1:count));
             maxErr = max(distanceError);
             axis([0 numPoses 0 maxErr]);
@@ -185,7 +196,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Distance Error');
 
-            subplot(3,2,4);
+            subplot(4,2,4);
             plot(1:count,velocityError(1:count));
             maxErr = max(velocityError);
             axis([0 numPoses 0 maxErr]);
@@ -193,9 +204,17 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Velocity Error');
 
-            subplot(3,2,6);
+            subplot(4,2,6);
             plot(1:count,orientationError(1:count));
             maxErr = max(orientationError);
+            axis([0 numPoses 0 maxErr]);
+            xlabel('Time');
+            ylabel('Squared Error');
+            title('Orientation Error');
+            
+            subplot(4,2,8);
+            plot(1:count,icError(1:count));
+            maxErr = max(icError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
             ylabel('Squared Error');
