@@ -23,22 +23,22 @@ close all
 clc
 % Seed random number generator so that we have repeatable simulation
 % results
-rng(2);
+% rng(2);
 
 %% Setup parameters: time, body translational acceleration, body rotation velocity, noise characteristics
 plotFlag = 0;
-t = 0:0.01:2; % Simulation run time and time step
+t = 0:0.01:10; % Simulation run time and time step
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
-a_i = repmat([0.05 -.08 0.1]', 1, length(t));
+a_i = repmat([1.4 1.08 0]', 1, length(t));
 % a_i = repmat([0 0.8 0]', 1, length(t));
 % a_i = repmat([0.3 0 0]', 1, length(t));
 
 
 % w = -pi + 2*pi*rand(3,length(t)); %in rad/second
 % w = repmat([.1 .3 0.5]', 1, length(t));
-w = repmat([0 0 0.5]', 1, length(t));
+w = repmat([0 0 1]', 1, length(t));
 % w = zeros(3, length(t));
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
@@ -46,26 +46,32 @@ euler_i_c = [0 0 0]';
 p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
 
 std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
-std_dev_noise_accel = 0;
+% std_dev_noise_accel = 0;
 % std_dev_bias_accel = 0.005 * 9.80665; % m/s^3
 std_dev_bias_accel = 0;
 
 std_dev_noise_gyro = 0.002 * 300 * pi/180; % rad/s
-std_dev_noise_gyro = 0;
+% std_dev_noise_gyro = 0;
 
 gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
 
 % Parameters for 3D visual features
-numPoints = 50;
-pts_min = [-20 -20 5]';
-pts_max = [20 20 20]';
-std_pixel_noise = 0.1;
-std_pixel_noise = 0.0;
+numPoints = 100;
+pts_min = [-15 -5 5]';
+pts_max = [5 15 5.1]';
+std_pixel_noise = 1;
+% std_pixel_noise = 0.0;
 
 std_v_w = 0.1;
 
-K = eye(3);             % intrinsic camera parameters
+image_width = 640;                          % image width
+image_height = 480;                         % image height
+f = 0.7;                                      % focal length
+px = image_width/2; py = image_height/2;    % principal point
+K = [f*image_width 0 px; 0 f*image_height py; 0 0 1];                % intrinsic parameters
+
+% K = eye(3);             % intrinsic camera parameters
 
 
 %% Derivated values from setup parameters
@@ -113,20 +119,33 @@ for i = 2:length(t)
     % Update world velocity
     v_w(:,i) = v_w(:,i-1) + a_w(:,i-1)*dt;
     % Update world position
-    p_w(:,i) = p_w(:,i-1) + v_w(:,i-1)*dt + 0.5*a_w(:,i-1)*dt^2;
-    
-    
-    % Update the world to body quaterion
-    if (norm(w(:,i-1)) == 0)
-        dq = [1 0 0 0]';
-    else
-        axisq = w(:,i-1) ./ norm(w(:,i-1));
-        theta = norm(w(:,i-1))*dt;
-        dq = newquaternion(theta, axisq);
-    end
+    %     p_w(:,i) = p_w(:,i-1) + v_w(:,i-1)*dt + 0.5*a_w(:,i-1)*dt^2;
+    p_w(:,i) = p_w(:,i-1) + v_w(:,i-1)*dt;
 
-    q_w_i(:,i) = quaternionproduct(q_w_i(:,i-1), dq);
     
+%     % Update the world to body quaterion
+%     if (norm(w(:,i-1)) == 0)
+%         dq = [1 0 0 0]';
+%     else
+%         axisq = w(:,i-1) ./ norm(w(:,i-1));
+%         theta = norm(w(:,i-1))*dt;
+%         dq = newquaternion(theta, axisq);
+%     end
+% 
+%     q_w_i(:,i) = quaternionproduct(q_w_i(:,i-1), dq);
+% %     q_w_i(:,i) = quaternionproduct(dq, q_w_i(:,i-1));
+%     q_w_i(:,i) = q_w_i(:,i) / norm(q_w_i(:,i));
+    
+    % propagate quaternion in time
+    skew_w = skewSymmetric(w(:,i-1));  
+    omega_w = [ 0,             -w(:,i)';
+                w(:,i),   -skew_w];
+            
+    dq_dt = 0.5*omega_w*q_w_i(:,i-1); % quat time derivative
+    
+    q_w_i(:,i) = q_w_i(:,i-1) + dt * dq_dt;
+    
+    q_w_i(:,i) = q_w_i(:,i) / norm(q_w_i(:,i));
     
     
     %     delta_qt = 0.5*rate2quatderiv(w(:,i-1))*qt(:,i-1)*dt;
@@ -180,6 +199,7 @@ imuData(:,29:31) = accel_i_measured';
 
 for i = 1:length(t)
   pts_c = T_i_c^-1 * T_w_i{i}^-1 * pts_w;
+  pts_c = K*pts_c(1:3, :);
   pixels = [pts_c(1,:)./pts_c(3,:); pts_c(2,:)./pts_c(3,:)];
   observed_pts_c(:,i) = pixels(:);
 end
