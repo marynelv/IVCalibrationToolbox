@@ -38,16 +38,37 @@ i = 2;
 j = 2;
 nowTime = imuData(i-1,3);
 
+%% Low pass filter for gravity vector (in the IMU frame)
+lengthLowPass = 300; % number of measurements to consider to estimating initial gravity
+alphaLowPass = 0.1; % smoothing factor
+
+g_i = accel_i_measured(:,1);
+aLowPass = accel_i_measured(:,2:lengthLowPass); % accel values to be filtered
+for i=2:lengthLowPass
+   g_i =  aLowPass(:,i-1).*alphaLowPass + g_i.*(1-alphaLowPass);
+end
+g_i = g_i ./ norm(g_i);
+
+%% Starting index
+i = lengthLowPass+1;
+j = lengthLowPass+1;
+nowTime = imuData(i-1,3);
+
 %% Initial estimate
 clear x;
 expected_rad_error = 10 * pi / 180;
 init_rad_error = 0.2* expected_rad_error;
 err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
+iniQ   = q_w_i(:,i);% + 0.02*rand(4,1);  % initial orientation in world frame
+iniQ = iniQ ./ norm(iniQ); 
+iniV   = v_w(:,i);% + 4*rand(3,1);   % initial velocity in world frame
+C_q_w_i_0 = quaternion2matrix(iniQ);
+iniG   = C_q_w_i_0(1:3,1:3)*g_i*9.81; % initial gravity in world frame
 
 
 %x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
 
-x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
+x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c); iniG]; % easy as ground truth location
 xstart=x;
 
 Ppos = diag([.5 .5 .5]);
@@ -55,8 +76,9 @@ Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
 Ppic=diag([.5 .5 .5]);
 Pqic=(10*pi/180)*eye(3);
+Pgra = eye(3)*1e-8; % just very small, though ideally it would be zero
 %P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
-P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic);
+P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra);
 Pstart=P;
 
 %% Initialize storage matrices and figure
@@ -70,6 +92,7 @@ picError=zeros(1,numPoses);
 qicError=zeros(1,numPoses);
 velocityError = zeros(1, numPoses);
 orientationError = zeros(1, numPoses);
+gravityError = zeros(1, numPoses);
 process_params = cell(4,1);
 obs_params = cell(5,1);
 
@@ -102,10 +125,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         process_params{2} = dt;
         process_params{3} = prev_q;
         process_params{4} = gravity;
-        process_handle = @processModelPQVICr;
+        process_handle = @processModelPQVICrg;
         
         %x_se = [x(1:3); 0; 0; 0; x(8:10)]; % State error vector with q in MRP
-        x_se = [x(1:3); 0; 0; 0; x(8:10);x(11:13); 0;0;0];
+        x_se = [x(1:3); 0; 0; 0; x(8:10);x(11:13); 0;0;0; x(18:20)];
         %[x_se, Ppred] = predictUKF(x_se, process_handle, process_params, ...
          %                      P(1:end-3,1:end-3), Q, ukf_alpha, ukf_beta);
         [x_se, Ppred] = predictUKF(x_se, process_handle, process_params, ...
@@ -133,7 +156,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         x'
         %x = [x_se(1:3); quat_new; x_se(7:9);x(end-2:end)];
-        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12);quat_qic_new];
+        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12);quat_qic_new;x_se(16:18)];
         x'
         
         %P=blkdiag(Ppred,P(end-2:end,end-2:end));
@@ -147,7 +170,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         z = noisy_observed_pts_c(:,j);
         R = 0.1^2 * eye(length(z));
         
-        x_se = [x(1:3); 0; 0; 0; x(8:10);x(11:13);0;0;0]; % State error vector with q in MRP
+        x_se = [x(1:3); 0; 0; 0; x(8:10);x(11:13);0;0;0;x(18:20)]; % State error vector with q in MRP
         ukf_N = length(x_se);
         
         %p_IMU_camera = repmat(p_i_c, 1, 2*ukf_N+1);
@@ -182,7 +205,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         quat_qic_new=quat_qic_new/norm(quat_qic_new);
         
         
-        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12);quat_qic_new];
+        x = [x_se(1:3); quat_new; x_se(7:9);x_se(10:12);quat_qic_new;x_se(16:18)];
         
          j = j + 1;
     end
@@ -195,7 +218,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         orientationError(1,count) = findQuaternionError(x(4:7), q_w_i(:,i-1));
         picError(1,count)=norm(x(11:13)-p_i_c);
         qicError(1,count)=findQuaternionError(x(14:17),q_i_c);
-
+        gravityError(1,count) = norm(x(18:20) - (-gravity));
+        
         %% Plot
         accumPoses(:,count) = x(1:3);
         count = count + 1;
@@ -204,7 +228,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             figure(h);
             clf
 
-            subplot(5,2,[1, 3, 5, 7, 9]);
+            subplot(6,2,[1, 3, 5, 7, 9]);
             plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
             hold on;
             plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
@@ -216,7 +240,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             grid on;
             title('Motion Estimation');
 
-            subplot(5,2,2);
+            subplot(6,2,2);
             plot(1:count,distanceError(1:count));
             maxErr = max(distanceError);
             axis([0 numPoses 0 maxErr]);
@@ -224,7 +248,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Distance Error');
 
-            subplot(5,2,4);
+            subplot(6,2,4);
             plot(1:count,velocityError(1:count));
             maxErr = max(velocityError);
             axis([0 numPoses 0 maxErr]);
@@ -232,7 +256,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Velocity Error');
 
-            subplot(5,2,6);
+            subplot(6,2,6);
             plot(1:count,orientationError(1:count));
             maxErr = max(orientationError);
             axis([0 numPoses 0 maxErr]);
@@ -240,7 +264,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Orientation Error');
             
-            subplot(5,2,8);
+            subplot(6,2,8);
             plot(1:count,picError(1:count));
             maxErr = max(picError)+.1;
             axis([0 numPoses 0 maxErr]);
@@ -248,13 +272,22 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('IMU-Camera Translation Error');
 
-            subplot(5,2,10);
+            subplot(6,2,10);
             plot(1:count,qicError(1:count));
             maxErr = max(qicError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
             ylabel('Squared Error');
             title('IMU-Camera Rotation Error');
+            
+            subplot(6,2,12);
+            plot(1:count,gravityError(1:count));
+            maxErr = max(gravityError);
+            axis([0 numPoses 0 maxErr]);
+            xlabel('Time');
+            ylabel('Squared Error');
+            title('Gravity Error');
+            
             %pause
         end
     

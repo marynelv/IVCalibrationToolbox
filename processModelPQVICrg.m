@@ -5,12 +5,12 @@
 %   2 - time step
 %   3 - current orientation estimate (quaternion)
 %   4 - gravity in the world
-function [x_next] = processModelPQVICr(xa, params)
+function [x_next] = processModelPQVICrg(xa, params)
 
 u        = params{1};
 timestep = params{2};
 q_w_i    = params{3}; % mean quaternion orientation
-gravity  = params{4};
+%gravity  = params{4};
 
 a_i = u(1:3);
 w_i = u(4:6);
@@ -19,14 +19,15 @@ w_i = u(4:6);
 position   = xa(1:3,:);  % p_w
 mrp_error  = xa(4:6,:);  % Error of the world to IMU quaterion in MRPs
 velocity   = xa(7:9,:);  % v_w
+gravity = xa(16:18,:);
 
 % Augmented portion of the state vector
 %if size(xa,1)<=15
 %oise_acc  = xa(10:12,:);
 %oise_gyro = xa(13:15,:);
 %else
-    noise_acc=xa(16:18,:);
-    noise_gyro=xa(19:21,:);
+    noise_acc=xa(19:21,:);
+    noise_gyro=xa(22:24,:);
 %end
 
 % Reserve space for result and intermediate computation
@@ -61,7 +62,7 @@ for i=1:numSigmaPoints
 
     % compute real acceleration
     C_q_world_IMU = quaternion2matrix(sigma_q_w_i(:,i));
-    real_accel(:,i) = C_q_world_IMU(1:3, 1:3)*a_i_minus_noise(:,i) +gravity;
+    real_accel(:,i) = C_q_world_IMU(1:3, 1:3)*a_i_minus_noise(:,i) - gravity(:,i);    
     
     % propagate quaternion in time
     skew_w = skewSymmetric(real_w(:,i));  
@@ -84,7 +85,7 @@ x_next(1:3,:) = position + velocity.*timestep;
 x_next(4:6,:) = sigma_mrp_k1;
 x_next(7:9,:) = velocity + real_accel.*timestep;
 if size(xa,1)>15
-    x_next=[x_next;xa(10:15,:)];
+    x_next=[x_next;xa(10:18,:)];
 end
 
 end
