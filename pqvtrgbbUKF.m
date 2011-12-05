@@ -49,10 +49,10 @@ nowTime = imuData(i-1,3);
 %% Initial estimate
 clear x;
 
-iniPos = p_w(:,i) + 1*rand(3,1);   % initial position in world frame
-iniQ   = q_w_i(:,i) + 0.02*rand(4,1);  % initial orientation in world frame
+iniPos = p_w(:,i) + rand(3,1).*(0.08^2);   % initial position in world frame
+iniQ   = q_w_i(:,i) + rand(4,1).*(0.02^2);  % initial orientation in world frame
 iniQ = iniQ ./ norm(iniQ); 
-iniV   = v_w(:,i-1) + 3*rand(3,1);   % initial velocity in world frame
+iniV   = v_w(:,i-1) + rand(3,1).*(0.3^2);   % initial velocity in world frame
 
 iniP_i_c = p_i_c+.1*randn(3,1);      
 init_rad_error = (2 * pi / 180);    
@@ -66,12 +66,12 @@ iniBg = bias_gyro(:,i) + + 0.1*rand(3,1);
 
 x = [iniPos; iniQ; iniV; iniP_i_c; iniQ_i_c; iniG; iniBa; iniBg]; 
 
-Ppos = diag([.5 .5 .5]);
+Ppos = eye(3).*(.1^2);
 Pori = (10 * pi / 180)* eye(3);
-Pvel = diag([0.5 0.5 0.5]);
+Pvel = eye(3).*(.5^2);
 Ppic=eye(3).*1e-4;
 Pqic=(2*pi/180)*eye(3);
-Pgra = eye(3)*1e-8; % just very small, though ideally it would be zero
+Pgra = diag([1.7 1.7 0.15].^2); % just very small, though ideally it would be zero
 Pba = eye(3)*0.001^2;
 Pbg = eye(3)*0.02^2;
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra,Pba,Pbg);

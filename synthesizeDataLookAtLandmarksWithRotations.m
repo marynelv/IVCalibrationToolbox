@@ -40,6 +40,7 @@ numPoints = 100;                            % number of landmarks
 pts_min = -5;                          
 pts_max = 5;
 pts_center = [10 10 0]';                    % mean landmark
+camUpVector = [0; 0; 1];
 
 std_pixel_noise = 0.1;
 std_v_w = 0.1;
@@ -87,7 +88,7 @@ for i = 1:nSteps-1
     %v_w_c(:,i) = v_w_c(:,i-1) + a_w_c(:,i-1)*dt;
     %p_w_c(:,i) = p_w_c(:,i-1) + v_w_c(:,i-1)*dt + 0.5*a_w_c(:,i-1)*dt^2;
     
-    q_w_c(:,i) = cameraOrientation(p_w_c(:,i), p_w_c(:,i+1)-p_w_c(:,i), pts_center);
+    q_w_c(:,i) = cameraOrientation(p_w_c(:,i), camUpVector, pts_center);
 end
 
 q_w_c(:,end)=q_w_c(:,end-1);

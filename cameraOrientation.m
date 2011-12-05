@@ -1,16 +1,17 @@
 % Find camera orientation given its position, velocity and the mean
 % landmark location
-% q = cameraOrientation(p_c_w, v_c_w, lookAtPoint)
-%   p_c_w    3x1 - camera position in the world
-%   v_c_w    3x1 - camera velocity in the world
+% q = cameraOrientation(p_c_w, up, lookAtPoint)
+%   p_c_w       3x1 - camera position in the world
+%   up          3x1 - (normalized) up vector
+%   lookAtPoint 3x1 - look at point in the world
 %   q        4x1 - quaternion
-function q = cameraOrientation(p_c_w, v_c_w, lookAtPoint)
+function q = cameraOrientation(p_c_w, up, lookAtPoint)
 
 % build camera frame
 z = p_c_w - lookAtPoint;
-x = v_c_w/norm(v_c_w);
-y = cross(z,x);
+y = up;
 x = cross(y,z);
+y = cross(z,x);
 
 z = z/norm(z);
 y = y/norm(y);
