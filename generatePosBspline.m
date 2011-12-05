@@ -18,10 +18,10 @@ end
 
 meanz=mean(landmarks(3,:),2);
 
-figure(20); subplot(1,2,1); plot(landmarks(1,:),landmarks(2,:),'b.');
+figure(20); plot(landmarks(1,:),landmarks(2,:),'b.');
 mx=max(landmarks,[],2);
 mn=min(landmarks,[],2);
-axis([mn(1)-20,mx(1)+20,mn(2)-20,mx(2)+20]);
+axis([mn(1)-10,mx(1)+10,mn(2)-10,mx(2)+10]);
 axis equal;
 
 hold on;
@@ -36,16 +36,16 @@ while ~done
 end
 
 controlpts=pos;
-controlpts=[controlpts;meanz*(1+5*randn(1,size(controlpts,2)))];
-%controlpts=[controlpts;repmat(meanz,1,size(controlpts,2))];
+%controlpts=[controlpts;meanz*(1+5*randn(1,size(controlpts,2)))];
+controlpts=[controlpts;repmat(meanz,1,size(controlpts,2))];
 
-%P=cubicSpline(controlpts,numpoints);
-P=bezierCurve(controlpts,numpoints);
+P=cubicSpline(controlpts,numpoints);
+%P=bezierCurve(controlpts,numpoints);
 
 hold on; 
 plot(P(1,:),P(2,:),'g-');
 
-subplot(1,2,2); plot3(landmarks(1,:),landmarks(2,:),landmarks(3,:),'b.'); hold on; 
-plot3(P(1,:),P(2,:),P(3,:),'g-'); axis vis3d; axis equal;
+%subplot(1,2,2); plot3(landmarks(1,:),landmarks(2,:),landmarks(3,:),'b.'); hold on; 
+%plot3(P(1,:),P(2,:),P(3,:),'g-'); axis vis3d; axis equal;
 
 end

@@ -3,7 +3,7 @@
 close all
 
 %% UKF parameters
-ukf_alpha = .1;
+ukf_alpha = .01;
 ukf_beta = 2;
 
 %% x: state vector

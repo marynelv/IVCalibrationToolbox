@@ -12,7 +12,7 @@ function [sigmaPoints,Weightsm,Weightsc]=calculateSigmaPoints(x_ahat_plus, P_a_p
 %   sigmaPoints(:,2:N+1) = x_ahat_plus+S^j
 %   sigmaPoints(:,N+2:2*N+1)=x_ahat_plus-S^j
 
-lambda=alpha*alpha*(N+beta)-N;
+lambda=alpha*alpha*(N+.1)-N;
 
 m=size(x_ahat_plus,1);
 nsigma=2*N+1;
@@ -21,7 +21,15 @@ sigmaPoints=zeros(m, nsigma);
 Weightsm=zeros(nsigma,1);
 Weightsc=zeros(nsigma,1);
 
+try
 S=sqrt(lambda+N)*chol(P_a_plus,'lower');
+catch
+[VV,DD]=eig(P_a_plus);
+VV=real(VV); DD=real(sqrt(real(DD)));
+S=sqrt(lambda+N)*VV*DD;
+end
+%P_a_plus=VV*DD*DD*VV;
+
 
 sigmaPoints(:,1)=x_ahat_plus;
 sigmaPoints(:,2:N+1)=bsxfun(@plus,x_ahat_plus,S(:,1:N));
