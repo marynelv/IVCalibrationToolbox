@@ -1,5 +1,7 @@
 % Position-only UKF
 
+clear x;
+
 %% UKF parameters
 ukf_alpha = 0.1;
 ukf_beta = 2;

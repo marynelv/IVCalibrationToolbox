@@ -51,15 +51,7 @@ image_width = 640;                          % image width
 image_height = 480;                         % image height
 f = 0.7;                                      % focal length
 
-
-%% Derived parameters
-nSteps = length(t);
-
-camera_x = repmat([1 0 0]',1,nSteps);
-camera_y = repmat([0 -1 0]',1,nSteps);
-camera_z = repmat([0 0 -1]',1,nSteps);
-
-% camera stuff
+%% Camera stuff
 pts_proj = zeros(2,numPoints);              % landmarks projected into the image plane
 px = image_width/2; py = image_height/2;    % principal point
 K = [f*image_width 0 px; 0 f*image_height py; 0 0 1];                % intrinsic parameters
@@ -69,16 +61,10 @@ pts_w = bsxfun(@plus, pts_min+(pts_max-pts_min).*rand(3,numPoints), pts_center);
 
 
 %% Generate camera path first and find its orientation
+nSteps = length(t);
+p_w_c = generatePosBspline(pts_w,nSteps);
 q_w_c = zeros(4,nSteps);
 v_w_c = zeros(3,nSteps);
-p_w_c=generatePosBspline(pts_w,nSteps);
-p0_w_c=p_w_c(:,1);
-%p_w_c = zeros(3,nSteps);
-
-%v_w_c(:,1) = v0_w_c;
-%p_w_c(:,1) = p0_w_c;
-%q_w_c(:,1) = cameraOrientation(p_w_c(:,1), v_w_c(:,1), pts_center);
-
 
 for i = 1:nSteps-1
     %dt = t(i) - t(i-1);                 
@@ -89,6 +75,12 @@ for i = 1:nSteps-1
 end
 
 q_w_c(:,end)=q_w_c(:,end-1);
+
+camera_x = repmat([1 0 0]',1,nSteps);
+camera_y = repmat([0 -1 0]',1,nSteps);
+camera_z = repmat([0 0 -1]',1,nSteps);
+
+p0_w_c=p_w_c(:,1);
 
 
 %% Position and orientation of IMU in the world frame 
@@ -134,9 +126,9 @@ a_w = a_i;
 %v_w = v_i;
 p_w = p_w_i;
 
-std_dev_noise_accel = 0;
+std_dev_noise_accel = 0.1;
 std_dev_bias_accel = 0;
-std_dev_noise_gyro = 0;
+std_dev_noise_gyro = 0.1;
 
 bias_accel = zeros(size(a_i));
 noise_accel = std_dev_noise_accel*randn(size(a_i));

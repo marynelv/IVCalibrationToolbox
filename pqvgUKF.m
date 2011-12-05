@@ -87,7 +87,7 @@ h = figure('Name','Position, Orientation, Velocity and Gravity Estimation', ...
 
 %% Begin Kalman filter
 count = 1;
-while (i <= numImuMeasurements && j <= numCamMeasurements )
+while (i <= numImuMeasurements - 3 && j <= numCamMeasurements - 3 )
     
     % Read the timestamp for the next data input
     imuTime = imuData(i,3);
@@ -179,7 +179,6 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         %% Plot
         accumPoses(:,count) = x(1:3);
-        count = count + 1;
 
         if mod(count, 10) == 1
             figure(h);
@@ -231,6 +230,13 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
 
             %pause
         end
+
+%     if (distanceError(count) > 0.05)
+%         display(sprintf('Distance error is > 0.05 at i=%d, j=%d at count = %d', i, j, count));
+%        pause; 
+%     end
+    
+        count = count + 1;
     
     end
     

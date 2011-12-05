@@ -11,6 +11,7 @@ if plotFlag
         hold on;
         scatter3(pts_center(1), pts_center(2), pts_center(3), 'b', '.');
         
+        
 %         plot3([p_w_c(1,i) pts_center(1)], [p_w_c(2,i) pts_center(2)], [p_w_c(3,i) pts_center(3)],'m-'); 
         
         % plot camera path
@@ -28,7 +29,7 @@ if plotFlag
         axis([-10 30 -5 45 -30 30]);
         xlabel('x'); ylabel('y'); zlabel('z');
         title(sprintf('frame %d/%d', i, length(t)-1));
-        view([-41 36]);
+        view([-16 18]); %view([-41 36]);
         hold off;
            
         subplot(1,2,2);
@@ -38,7 +39,7 @@ if plotFlag
         xlabel('x'); ylabel('-y');
         title('Camera image');
         
-        pause(0.1);        
+        %pause(0.01);        
         
     end
     
