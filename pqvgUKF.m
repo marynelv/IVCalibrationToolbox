@@ -1,5 +1,5 @@
 % Position, orientation, velocity and gravity UKF
-clc
+%clc
 close all
 clear x;
 

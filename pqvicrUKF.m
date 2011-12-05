@@ -3,7 +3,7 @@
 close all
 
 %% UKF parameters
-ukf_alpha = .1;
+ukf_alpha = .01;
 ukf_beta = 2;
 
 %% x: state vector
@@ -40,21 +40,21 @@ nowTime = imuData(i-1,3);
 
 %% Initial estimate
 clear x;
-expected_rad_error = 10 * pi / 180;
+expected_rad_error = 1 * pi / 180;
 init_rad_error = 0.2* expected_rad_error;
 err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
 
 
-%x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
-
 x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
+
+%x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); q_i_c]; % easy as ground truth location
 xstart=x;
 
 Ppos = diag([.5 .5 .5]);
 Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
 Ppic=diag([.5 .5 .5]);
-Pqic=(10*pi/180)*eye(3);
+Pqic=(20*pi/180)*eye(3);
 %P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic);
 Pstart=P;
