@@ -1,6 +1,6 @@
 %% Plot
 if plotFlag
-    for i = 1:length(t) - 1
+    for i = 1:10:length(t) 
         
         figure(1);
         grid on;

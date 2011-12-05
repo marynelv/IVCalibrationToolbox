@@ -36,7 +36,7 @@ end
 V=[V,V(:,end)];
 Vw=[dPdt,dPdt(:,end)];
 Omega=[Omega,Omega(:,end)];
-A=[A,A(:,end-1:end)];
-Alpha=[Alpha,Alpha(:,end-1:end)];
+A=[A,A(:,end),A(:,end)];
+Alpha=[Alpha,Alpha(:,end),Alpha(:,end)];
 
 end
