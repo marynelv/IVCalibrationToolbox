@@ -75,10 +75,10 @@ iniBg = bias_gyro(:,i) + + 0.1*rand(3,1);
 x = [iniPos; iniQ; iniV; iniP_i_c; iniQ_i_c; iniG; iniBa; iniBg]; 
 
 Ppos = eye(3).*(.1^2);
-Pori = eye(3).*(mrpP(10)^2);
+Pori = eye(3).*(mrpStd(10)^2);
 Pvel = eye(3).*(.5^2);
 Ppic=eye(3).*1e-4;
-Pqic=eye(3).*(mrpP(7)^2);
+Pqic=eye(3).*(mrpStd(7)^2);
 Pgra = diag([1.7 1.7 0.15].^2); % just very small, though ideally it would be zero
 Pba = eye(3)*0.001^2;
 Pbg = eye(3)*0.02^2;
@@ -100,6 +100,18 @@ biasAccelError = zeros(1,numPoses);
 biasGyroError = zeros(1,numPoses);
 process_params = cell(3,1);
 obs_params = cell(5,1);
+
+
+accum_pwc = zeros(3,numPoses);
+accum_pwi = zeros(3,numPoses);
+accum_pwi_estim = zeros(3,numPoses);
+accum_qwc = zeros(4,numPoses);
+accum_qwi = zeros(4,numPoses);
+accum_qwi_estim = zeros(4,numPoses);
+accum_pic_estim = zeros(3,numPoses);
+accum_qic_estim = zeros(4,numPoses);
+accum_pwc_estim = zeros(3,numPoses);
+accum_qwc_estim = zeros(4,numPoses);
 
 h = figure('Name','Position, Orientation and Velocity Estimation', ...
            'NumberTitle','off','Position',[10 10 1000 600]);
@@ -210,6 +222,18 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         %% Plot
         accumPoses(:,count) = x(1:3);
+        accum_pwi(:,count)=p_w(:,i-1);
+        accum_pwi_estim(:,count)=x(1:3);
+        accum_pwc(:,count)=p_w_c(:,i-1);
+        accum_qwi(:,count)=q_w_i(:,i-1);
+        accum_qwc(:,count)=q_w_c(:,i-1);
+        accum_qwi_estim(:,count)=x(4:7);
+        accum_pic_estim(:,count)=x(11:13);
+        accum_qic_estim(:,count)=x(14:17);
+        
+        accum_qwc_estim(:,count)=rotation2quaternion(quaternion2rotation(accum_qwi_estim(:,count))*quaternion2rotation(accum_qic_estim(:,count)));
+        accum_pwc_estim(:,count)=accum_pwi_estim(:,count)+quaternion2rotation(accum_qwi_estim(:,count))*accum_pic_estim(:,count);
+        
         count = count + 1;
 
         if mod(count, 10) == 1
@@ -217,15 +241,20 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             clf
 
             subplot(4,3,[1, 4, 7, 10]);
-            plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
-            hold on;
-            plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
+            %plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
+            %hold on;
+            %plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
     %         hold on;
     %         plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
-            axis equal
-            axis vis3d
-            xlabel('x'); ylabel('y'); zlabel('z');
-            grid on;
+            %axis equal
+            %axis vis3d
+            %xlabel('x'); ylabel('y'); zlabel('z');
+            %grid on;
+            [accum_pwc_estim,accum_qwc_estim]=prettyPlotSingle(...
+                accum_pwc,accum_qwc,accum_pwi,...
+                accum_pwc_estim,accum_qwc_estim,accum_pwi_estim,...
+                pts_w,pts_center,count-1);        
+            
             title(sprintf('Motion Estimation (Frame %d)', count));
 
             subplot(4,3,2);
@@ -292,6 +321,8 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             xlabel('Time');
             ylabel('Squared Error');
             title('Gyro Bias Error');
+    %        F=getframe(gcf);
+    %        imwrite(F.cdata,sprintf('plot/%03d.png',i));
             
             %pause
         end

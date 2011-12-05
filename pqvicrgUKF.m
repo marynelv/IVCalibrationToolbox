@@ -3,7 +3,7 @@
 close all
 
 %% UKF parameters
-ukf_alpha = .01;
+ukf_alpha = .04;
 ukf_beta = 2;
 
 %% x: state vector
@@ -79,7 +79,7 @@ Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
 Ppic=diag([.5 .5 .5]);
 Pqic=(10*pi/180)*eye(3);
-Pgra = eye(3)*1e-8; % just very small, though ideally it would be zero
+Pgra = eye(3)*.1; % just very small, though ideally it would be zero
 %P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra);
 Pstart=P;
@@ -99,10 +99,22 @@ gravityError = zeros(1, numPoses);
 process_params = cell(4,1);
 obs_params = cell(5,1);
 
+accum_pwc = zeros(3,numPoses);
+accum_pwi = zeros(3,numPoses);
+accum_pwi_estim = zeros(3,numPoses);
+accum_qwc = zeros(4,numPoses);
+accum_qwi = zeros(4,numPoses);
+accum_qwi_estim = zeros(4,numPoses);
+accum_pic_estim = zeros(3,numPoses);
+accum_qic_estim = zeros(4,numPoses);
+accum_pwc_estim = zeros(3,numPoses);
+accum_qwc_estim = zeros(4,numPoses);
 
 h = figure('Name','Position, Orientation and Velocity Estimation', ...
            'NumberTitle','off','Position',[10 10 1000 600]);
 
+       
+       
 
 %% Begin Kalman filter
 count = 1;
@@ -225,6 +237,18 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         %% Plot
         accumPoses(:,count) = x(1:3);
+        accum_pwi(:,count)=p_w(:,i-1);
+        accum_pwi_estim(:,count)=x(1:3);
+        accum_pwc(:,count)=p_w_c(:,i-1);
+        accum_qwi(:,count)=q_w_i(:,i-1);
+        accum_qwc(:,count)=q_w_c(:,i-1);
+        accum_qwi_estim(:,count)=x(4:7);
+        accum_pic_estim(:,count)=x(11:13);
+        accum_qic_estim(:,count)=x(14:17);
+        
+        accum_qwc_estim(:,count)=rotation2quaternion(quaternion2rotation(accum_qwi_estim(:,count))*quaternion2rotation(accum_qic_estim(:,count)));
+        accum_pwc_estim(:,count)=accum_pwi_estim(:,count)+quaternion2rotation(accum_qwi_estim(:,count))*accum_pic_estim(:,count);
+        
         count = count + 1;
 
         if mod(count, 10) == 1
@@ -232,15 +256,19 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             clf
 
             subplot(6,2,[1, 3, 5, 7, 9]);
-            plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
-            hold on;
-            plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
+            %plot3(accumPoses(1,1:count-1), accumPoses(2,1:count-1), accumPoses(3,1:count-1),'-');
+            %hold on;
+            %plot3(p_w(1,1:i), p_w(2,1:i), p_w(3,1:i), 'g');
     %         hold on;
     %         plot3(pts_w(1, :), pts_w(2, :), pts_w(3, :), 'r.');
-            axis equal
-            axis vis3d
-            xlabel('x'); ylabel('y'); zlabel('z');
-            grid on;
+            %axis equal
+            %axis vis3d
+            %xlabel('x'); ylabel('y'); zlabel('z');
+            %grid on;
+            [accum_pwc_estim,accum_qwc_estim]=prettyPlotSingle(...
+                accum_pwc,accum_qwc,accum_pwi,...
+                accum_pwc_estim,accum_qwc_estim,accum_pwi_estim,...
+                pts_w,pts_center,count-1);        
             title('Motion Estimation');
 
             subplot(6,2,2);
@@ -291,6 +319,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             ylabel('Squared Error');
             title('Gravity Error');
             
+            %F=getframe(gcf);
+            %imwrite(F.cdata,sprintf('plot/%03d.png',i));
+    
             %pause
         end
     
