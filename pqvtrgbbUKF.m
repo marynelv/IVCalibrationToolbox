@@ -23,7 +23,7 @@ ukf_beta = 2;
 
 %% Q: 12x12 process noise covariance matrix 
 Qgw = eye(3) * 0.0196^2;   % noise gyro bias (more or less as in the data sheet)
-Qaw = eye(3) * 0.04^2;    % noise accel bias (more or less as synthesized)
+Qaw = eye(3) * 0.0001^2;    % noise accel bias (more or less as synthesized)
 Qacc = eye(3) * 0.1^2;  
 Qrot = eye(3) * 0.001 * 300 * pi/180; % rad/s
 Q = blkdiag(Qacc, Qrot, Qaw, Qgw);
@@ -49,17 +49,17 @@ nowTime = imuData(i-1,3);
 %% Initial estimate
 clear x;
 
-iniPos = p_w(:,i);% + 1*rand(3,1);   % initial position in world frame
-iniQ   = q_w_i(:,i);% + 0.02*rand(4,1);  % initial orientation in world frame
+iniPos = p_w(:,i) + 1*rand(3,1);   % initial position in world frame
+iniQ   = q_w_i(:,i) + 0.02*rand(4,1);  % initial orientation in world frame
 iniQ = iniQ ./ norm(iniQ); 
-iniV   = v_w(:,i-1);% + 4*rand(3,1);   % initial velocity in world frame
+iniV   = v_w(:,i-1) + 3*rand(3,1);   % initial velocity in world frame
 
 iniP_i_c = p_i_c+.1*randn(3,1);      
 init_rad_error = (2 * pi / 180);    
 err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
 iniQ_i_c = quaternionproduct(err_quat,q_i_c);
 
-iniG=-gravity+.5*randn(3,1);
+iniG=-gravity+.1*randn(3,1);
 
 iniBa = bias_accel(:,i) + + 0.1*rand(3,1);
 iniBg = bias_gyro(:,i) + + 0.1*rand(3,1);
@@ -69,11 +69,11 @@ x = [iniPos; iniQ; iniV; iniP_i_c; iniQ_i_c; iniG; iniBa; iniBg];
 Ppos = diag([.5 .5 .5]);
 Pori = (10 * pi / 180)* eye(3);
 Pvel = diag([0.5 0.5 0.5]);
-Ppic=eye(3).*0.01;
+Ppic=eye(3).*1e-4;
 Pqic=(2*pi/180)*eye(3);
 Pgra = eye(3)*1e-8; % just very small, though ideally it would be zero
 Pba = eye(3)*0.001^2;
-Pbg = eye(3)*0.001^2;
+Pbg = eye(3)*0.02^2;
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra,Pba,Pbg);
 
 %% Initialize storage matrices and figure
@@ -271,7 +271,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             
             subplot(4,3,11);
             plot(1:count,biasAccelError(1:count));
-            maxErr = max(picError)+.1;
+            maxErr = max(biasAccelError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
             ylabel('Squared Error');
@@ -279,7 +279,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
 
             subplot(4,3,12);
             plot(1:count,biasGyroError(1:count));
-            maxErr = max(qicError)+.1;
+            maxErr = max(biasGyroError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
             ylabel('Squared Error');
