@@ -142,19 +142,32 @@ a_w = a_i;
 %v_w = v_i;
 p_w = p_w_i;
 
-std_dev_noise_accel = 0.1;
-std_dev_bias_accel = 0;
-std_dev_noise_gyro = 0.1;
+sampling_freq = 1/timeStep;
 
-bias_accel = zeros(size(a_i));
+std_dev_noise_accel = 200e-6 * 9.81 * sqrt(sampling_freq); % According to data sheet 200 ug/sqrt(hz)
+std_dev_bias_accel = 0.0042;
+
+std_dev_noise_gyro = 0.05 * pi / 180 * sqrt(sampling_freq); % 0.05 deg/sec/sqrt(Hz) as stated in gyro data sheet
+std_dev_bias_gyro = 1.5340e-04; % Taken from zero slope point of Allan Deviation plot at time = 150s times sqrt(2*sampling_freq/dt)*2
+
+accel_bias_steps = timeStep*std_dev_bias_accel*randn(size(a_i));
+bias_accel = cumsum(accel_bias_steps,2);
+
 noise_accel = std_dev_noise_accel*randn(size(a_i));
-accel_i_measured = a_i + bias_accel + noise_accel;
+total_accel_noise = bias_accel + noise_accel;
+accel_i_measured = a_i + total_accel_noise;
 
-%w = repmat([0 0 0]', 1, length(t));
 w=omega_i;
-bias_gyro = zeros(size(w));
-noise_gyro = std_dev_noise_gyro*randn(size(w));
-gyro_i_measured = w + bias_gyro + noise_gyro;
+
+gyro_bias_steps = timeStep*std_dev_bias_gyro*randn(size(w));
+bias_gyro = cumsum(gyro_bias_steps,2);
+
+noise_gyro = std_dev_noise_accel*randn(size(w));
+total_gyro_noise = bias_gyro + noise_gyro;
+gyro_i_measured = w + total_gyro_noise;
+
+% figure, plot(t, total_accel_noise(1,:), 'r', t, total_accel_noise(2,:), 'g', t, total_accel_noise(3,:), 'b'), title('Accel noise');
+% figure, plot(t, total_gyro_noise(1,:), 'r', t, total_gyro_noise(2,:), 'g', t, total_gyro_noise(3,:), 'b'), title('Gyro noise');
 
 imuData = zeros(length(t), 31);
 imuData(:,3) = t;
