@@ -34,9 +34,6 @@ Q = [Qacc zeros(3); zeros(3) Qrot];
 % R = diag(R1 ... Rn) = 0.1^2 * eye(length(z));
 
 %% Starting index
-i = 2;
-j = 2;
-nowTime = imuData(i-1,3);
 
 %% Low pass filter for gravity vector (in the IMU frame)
 lengthLowPass = 300; % number of measurements to consider to estimating initial gravity
@@ -50,9 +47,13 @@ end
 g_i = g_i ./ norm(g_i);
 
 %% Starting index
-i = lengthLowPass+1;
-j = lengthLowPass+1;
+%i = lengthLowPass+1;
+%j = lengthLowPass+1;
+%nowTime = imuData(i-1,3);
+i = 2;
+j = 2;
 nowTime = imuData(i-1,3);
+
 
 %% Initial estimate
 clear x;
@@ -63,8 +64,10 @@ iniQ   = q_w_i(:,i);% + 0.02*rand(4,1);  % initial orientation in world frame
 iniQ = iniQ ./ norm(iniQ); 
 iniV   = v_w(:,i);% + 4*rand(3,1);   % initial velocity in world frame
 C_q_w_i_0 = quaternion2matrix(iniQ);
-iniG   = C_q_w_i_0(1:3,1:3)*g_i*9.81; % initial gravity in world frame
-
+%iniG   = C_q_w_i_0(1:3,1:3)*g_i*9.81; % initial gravity in world frame
+%iniG=C_q_w_i_0(1:3,1:3)*(-gravity);
+iniG=-gravity+.1*randn(3,1);
+%iniG=-gravity;
 
 %x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
 
