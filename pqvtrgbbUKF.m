@@ -262,7 +262,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(distanceError);
             axis([0 numPoses 0 maxErr]);
     %        xlabel('Time');
-            ylabel('Squared Error');
+            %ylabel('Squared Error');
             title('Distance Error');
 
             subplot(4,3,3);
@@ -270,7 +270,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(velocityError);
             axis([0 numPoses 0 maxErr]);
     %        xlabel('Time');
-            ylabel('Squared Error');
+            %ylabel('Squared Error');
             title('Velocity Error');
 
             subplot(4,3,5);
@@ -278,7 +278,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(orientationError);
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Orientation Error');
             
             
@@ -287,7 +287,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(gravityError);
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+            %ylabel('Squared Error');
             title('Gravity Error');
             
             subplot(4,3,8);
@@ -295,7 +295,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(picError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+            %ylabel('Squared Error');
             title('IMU-Camera Translation Error');
 
             subplot(4,3,9);
@@ -303,7 +303,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(qicError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('IMU-Camera Rotation Error');
             
             subplot(4,3,11);
@@ -311,7 +311,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(biasAccelError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Accel Bias Error');
 
             subplot(4,3,12);
@@ -319,12 +319,20 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(biasGyroError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+            %ylabel('Squared Error');
             title('Gyro Bias Error');
-    %        F=getframe(gcf);
-    %        imwrite(F.cdata,sprintf('plot/%03d.png',i));
+            F=getframe(gcf);
+            imwrite(F.cdata,sprintf('plot/%03d.png',i));
+            %subplot(4,3,[1, 4, 7, 10]);
+            %F=getframe(gca);
+            %imwrite(F.cdata,sprintf('motion/%03d.png',i));
             
             %pause
+            %saveas(gcf,sprintf('plot/%03d.png',i));
+            subplot(4,3,[1, 4, 7, 10]);
+            saveas(gca,sprintf('motion/%03d.png',i));
+            %print('-dpng','-r300','-opengl',sprintf('plot/%03d.png',i));
+            
         end
     
     end
