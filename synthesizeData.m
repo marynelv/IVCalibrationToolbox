@@ -50,7 +50,7 @@ w = bsxfun(@times, [0.1 .2 0.5]', [sin(2*pi*t/0.5); sin(2*pi*t/0.6 - 0.3); sin(2
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
 euler_i_c = [0 0 0]';
-p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
+p_i_c = [ 0 0 0.3]'; % Translation from IMU to camera frame in meters
 
 std_dev_noise_accel = 200e-6 * 9.81 * sqrt(sampling_freq); % According to data sheet 200 ug/sqrt(hz)
 std_dev_bias_accel = 0.0042;
@@ -228,10 +228,13 @@ noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_
 % figure, plot3(p_w(1,:), p_w(2,:), p_w(3,:));
 
 
-%% VERY BAD
-
-p_w_c = p_w;
-q_w_c = q_w_i;
+p_w_c = zeros(3,length(t));
+q_w_c = zeros(4,length(t));
+for i = 1:length(t)
+    T_w_c = T_w_i{i}*T_i_c;
+    p_w_c(:,i) = T_w_c(1:3,4);
+    q_w_c(:,i) = matrix2quaternion(T_w_c);
+end
 pts_center = mean(pts_w, 2);
 
 %% Movie like plot
