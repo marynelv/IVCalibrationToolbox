@@ -37,7 +37,7 @@ t = 0:0.01:10; % Simulation run time and time step
 % a_i = bsxfun(@times, [1.4 1.08 0.3]', [sin(2*pi*t/0.9); sin(2*pi*t/0.4 - 0.3); sin(2*pi*t/0.1 - 0.8)]);
 % w = bsxfun(@times, [.4 .08 0.23]', [sin(2*pi*t/0.2); sin(2*pi*t/1 - 0.3); sin(2*pi*t/0.5 - 0.8)]);
 a_i = bsxfun(@times, [0.3 1.08 -0.5]', [sin(2*pi*t/1); sin(2*pi*t/6 - 0.3); sin(2*pi*t/5 - 0.8)]);
-w = bsxfun(@times, [0.1 .2 0.23]', [sin(2*pi*t/0.5); sin(2*pi*t/0.6 - 0.3); sin(2*pi*t/4.5 - 0.8)]);
+w = bsxfun(@times, [0.1 .2 0.5]', [sin(2*pi*t/0.5); sin(2*pi*t/0.6 - 0.3); sin(2*pi*t/4.5 - 0.8)]);
 
 
 % w = -pi + 2*pi*rand(3,length(t)); %in rad/second
@@ -228,6 +228,13 @@ noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_
 % figure, plot3(a_w(1,:), a_w(2,:), a_w(3,:));
 % figure, plot3(v_w(1,:), v_w(2,:), v_w(3,:));
 % figure, plot3(p_w(1,:), p_w(2,:), p_w(3,:));
+
+
+%% VERY BAD
+
+p_w_c = p_w;
+q_w_c = q_w_i;
+pts_center = mean(pts_w, 2);
 
 %% Movie like plot
 if plotFlag
