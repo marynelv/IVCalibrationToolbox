@@ -27,7 +27,10 @@ clc
 
 %% Setup parameters: time, body translational acceleration, body rotation velocity, noise characteristics
 plotFlag = 1;
-t = 0:0.01:10; % Simulation run time and time step
+timeStep = 0.01;
+t = 0:timeStep:10; % Simulation run time and time step
+sampling_freq = 1/timeStep;
+
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
@@ -49,14 +52,11 @@ w = bsxfun(@times, [0.1 .2 0.5]', [sin(2*pi*t/0.5); sin(2*pi*t/0.6 - 0.3); sin(2
 euler_i_c = [0 0 0]';
 p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
 
-std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
-std_dev_noise_accel = 0;
+std_dev_noise_accel = 200e-6 * 9.81 * sqrt(sampling_freq); % According to data sheet 200 ug/sqrt(hz)
+std_dev_bias_accel = 0.0042;
 
-std_dev_bias_accel = 0.005 * 9.80665; % m/s^3
-std_dev_bias_accel = 0;
-
-std_dev_noise_gyro = 0.002 * 300 * pi/180; % rad/s
-std_dev_noise_gyro = 0;
+std_dev_noise_gyro = 0.05 * pi / 180 * sqrt(sampling_freq); % 0.05 deg/sec/sqrt(Hz) as stated in gyro data sheet
+std_dev_bias_gyro = 1.5340e-04; % Taken from zero slope point of Allan Deviation plot at time = 150s times sqrt(2*sampling_freq/dt)*2
 
 gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
@@ -69,7 +69,7 @@ pts_max = [5 15 5.1]';
 % pts_max = [15 15 15]';
 
 std_pixel_noise = 1;
-std_pixel_noise = 0;
+% std_pixel_noise = 0;
 
 std_v_w = 0.1;
 
@@ -174,21 +174,19 @@ T_w_i{i}(1:3,4) = p_w(:,i);
 
 
 %% Generate simulated measurements
-bias_accel = zeros(size(a_i));
-% for i = 2:length(t)
-%     bias_accel(:,i) = bias_accel(:,i-1) + std_dev_bias_accel*randn(3,1)*dt;
-% end
-noise_accel = std_dev_noise_accel*randn(size(a_i));
-% noise_accel = zeros(size(a_i));
-accel_i_measured = a_i + bias_accel + noise_accel;
+accel_bias_steps = timeStep*std_dev_bias_accel*randn(size(a_i));
+bias_accel = cumsum(accel_bias_steps,2);
 
-bias_gyro = zeros(size(w));
-% for i = 2:length(t)
-%     bias_gyro(:,i) = bias_gyro(:,i-1) + std_dev_bias_gyro*randn(3,1)*dt;
-% end
-noise_gyro = std_dev_noise_gyro*randn(size(w));
-% noise_gyro = zeros(size(w));
-gyro_i_measured = w + bias_gyro + noise_gyro;
+noise_accel = std_dev_noise_accel*randn(size(a_i));
+total_accel_noise = bias_accel + noise_accel;
+accel_i_measured = a_i + total_accel_noise;
+
+gyro_bias_steps = timeStep*std_dev_bias_gyro*randn(size(w));
+bias_gyro = cumsum(gyro_bias_steps,2);
+
+noise_gyro = std_dev_noise_accel*randn(size(w));
+total_gyro_noise = bias_gyro + noise_gyro;
+gyro_i_measured = w + total_gyro_noise;
 
 % Store data in ROS ordering
 imuData = zeros(length(t), 31);

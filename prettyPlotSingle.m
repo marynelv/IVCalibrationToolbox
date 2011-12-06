@@ -72,7 +72,12 @@ camera_z_estim = repmat([0 0 -1]',1,nSteps);
     plot3([p_w_c_estim(1,i) p_w_i_estim(1,i)], [p_w_c_estim(2,i) p_w_i_estim(2,i)], [p_w_c_estim(3,i) p_w_i_estim(3,i)], 'g-');
     
     axis equal; axis vis3d; camproj('p');
-    axis([-10 30 -10 30 -10 10]);
+%     maxV = max([pts_w(1:3,:) p_w_c], [], 2);
+%     minV = min([pts_w(1:3,:) p_w_c], [], 2);
+%     axisLims = [minV maxV]'
+%     
+%     axis(axisLims(:)');
+axis([-13, 5, -5, 15, -3, 6]);
     set(gca,'Color','k');
     
     
