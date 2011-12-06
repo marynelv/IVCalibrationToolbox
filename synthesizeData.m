@@ -26,19 +26,23 @@ clc
 % rng(2);
 
 %% Setup parameters: time, body translational acceleration, body rotation velocity, noise characteristics
-plotFlag = 0;
+plotFlag = 1;
 t = 0:0.01:10; % Simulation run time and time step
 
 % a_i = sin(t);
 % a_i = rand(3,length(t)) - 0.5;
-a_i = repmat([1.4 1.08 0]', 1, length(t));
+% a_i = repmat([1.4 1.08 0]', 1, length(t));
 % a_i = repmat([0 0.8 0]', 1, length(t));
 % a_i = repmat([0.3 0 0]', 1, length(t));
+% a_i = bsxfun(@times, [1.4 1.08 0.3]', [sin(2*pi*t/0.9); sin(2*pi*t/0.4 - 0.3); sin(2*pi*t/0.1 - 0.8)]);
+% w = bsxfun(@times, [.4 .08 0.23]', [sin(2*pi*t/0.2); sin(2*pi*t/1 - 0.3); sin(2*pi*t/0.5 - 0.8)]);
+a_i = bsxfun(@times, [0.3 1.08 -0.5]', [sin(2*pi*t/1); sin(2*pi*t/6 - 0.3); sin(2*pi*t/5 - 0.8)]);
+w = bsxfun(@times, [0.1 .2 0.23]', [sin(2*pi*t/0.5); sin(2*pi*t/0.6 - 0.3); sin(2*pi*t/4.5 - 0.8)]);
 
 
 % w = -pi + 2*pi*rand(3,length(t)); %in rad/second
 % w = repmat([.1 .3 0.5]', 1, length(t));
-w = repmat([0 0 1]', 1, length(t));
+% w = repmat([0 0 1]', 1, length(t));
 % w = zeros(3, length(t));
 
 % euler_i_c = [ 10*pi/180 -60*pi/180 132*pi/180 ]; % Euler angle rotation from body (IMU) to camera frame in radians
@@ -46,22 +50,26 @@ euler_i_c = [0 0 0]';
 p_i_c = [ 0 0 0]'; % Translation from IMU to camera frame in meters
 
 std_dev_noise_accel = 0.002 * 5 * 9.80665; % m/s^2
-% std_dev_noise_accel = 0;
-% std_dev_bias_accel = 0.005 * 9.80665; % m/s^3
+std_dev_noise_accel = 0;
+
+std_dev_bias_accel = 0.005 * 9.80665; % m/s^3
 std_dev_bias_accel = 0;
 
 std_dev_noise_gyro = 0.002 * 300 * pi/180; % rad/s
-% std_dev_noise_gyro = 0;
+std_dev_noise_gyro = 0;
 
 gravity = [0 0 9.81]';
 % gravity = [0 0 0]';
 
 % Parameters for 3D visual features
-numPoints = 100;
+numPoints = 30;
 pts_min = [-15 -5 5]';
 pts_max = [5 15 5.1]';
+% pts_min = [-15 -15 -15]';
+% pts_max = [15 15 15]';
+
 std_pixel_noise = 1;
-% std_pixel_noise = 0.0;
+std_pixel_noise = 0;
 
 std_v_w = 0.1;
 
@@ -225,7 +233,7 @@ noisy_observed_pts_c = observed_pts_c + std_pixel_noise*randn(size(observed_pts_
 if plotFlag
     for i = 1:length(t)-1
         
-        if (mod(t(i), 0.5) == 0)          
+        if (mod(t(i), 1) == 0)          
             figure(9), plot3(p_w(1,:), p_w(2,:), p_w(3,:));
             
             hold on;
