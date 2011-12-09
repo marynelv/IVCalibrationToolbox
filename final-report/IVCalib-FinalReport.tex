@@ -249,6 +249,35 @@ used only when a measurement comes in.
 % TODO. Might be a good idea to regenerate this picture with whatever
 % point distribution we used before submitting the report..
 
+We carried out various simulation studies while implementing the
+UKF. We started estimating only the position of the IMU in space
+($\bb{p}_I^W(t)$), and gradually incremented the complexity of the
+state vector. For brevity, we only report results obtained for the
+state vector presented in equation (\ref{eq:UKF-state}).
+
+We modeled a sensor beam of $30$ cm in length, with the camera and the
+IMU positioned at its extremes. We generated synthetic motion data for
+the IMU as explained in Section \ref{to be defined}, with a maximum
+linear acceleration of $1.23$ m/s$^2$, and maximum angular velocity of
+$0.55$ rad/s (approx. $31^\circ$/s).  Then we placed a total of 30
+visual landmarks near the path of the beam, with the contraint that
+they should almost lie in a plane.\footnote{Though the planar
+  constraint is not necessary for the UKF filter to work, we wanted to
+  mimic a real target-based calibration scenario
+  \cite{2011:kelly:article}.}  Figure \ref{fig:groundtruth} shows the
+synthesized path of the IMU, as well as the set of 3D landmarks that
+we used as ground truth.
+
+\begin{figure}[h!p]
+\centering
+\includegraphics[width=.7\linewidth]{groundTruth.eps}
+\caption{Synthesized ground truth data. The black line depicts the
+  path of IMU in 3D space, while the green dots represent 3D visual
+  landmarks captured by the camera (blue).}
+\label{fig:groundtruth}
+\end{figure}
+
+
 \section{Future work}
 The next step in the project will be to expand our filter to estimate the full state vector. The most difficult part of this implementation will be the quaternion predication and correction steps within the Kalman filter. We are also developing a more complicated motion simulator to simulate the motion and field of view for a realistic camera-IMU system.
 
