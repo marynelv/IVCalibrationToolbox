@@ -49,7 +49,7 @@ calibration parameters we intend to estimate, and they do not change
 over time. The state vector, $\bb{x}_s(t)$ has $26 \times 1$
 variables.
 \begin{equation}
-\bb{x}_t=\begin{bmatrix} (\bb{p}_I^W(t))^T & ({\overline{q}}_I^W(t))^T  & (\bb{v}^W)^T  & (\bb{b}_g(t))^T &  (\bb{b}_a(t))^T & (\bb{g}^W(t))^T  & (\bb{p}_C^I)^T & (\overline{q}_C^I)^T\end{bmatrix}
+\bb{x}_t=\begin{bmatrix} (\bb{p}_I^W(t))^T & ({\overline{q}}_I^W(t))^T  & (\bb{v}^W(t))^T  & (\bb{b}_g(t))^T &  (\bb{b}_a(t))^T & (\bb{g}^W(t))^T  & (\bb{p}_C^I)^T & (\overline{q}_C^I)^T\end{bmatrix}
 \label{eq:UKF-state}
 \end{equation}
 
@@ -260,7 +260,7 @@ IMU positioned at its extremes. We generated synthetic motion data for
 the IMU as explained in Section \ref{to be defined}, with a maximum
 linear acceleration of $1.23$ m/s$^2$, and maximum angular velocity of
 $0.55$ rad/s (approx. $31^\circ$/s).  Then we placed a total of 30
-visual landmarks near the path of the beam, with the contraint that
+visual landmarks near the path of the beam, with the constraint that
 they should almost lie in a plane.\footnote{Though the planar
   constraint is not necessary for the UKF filter to work, we wanted to
   mimic a real target-based calibration scenario
@@ -271,11 +271,41 @@ we used as ground truth.
 \begin{figure}[h!p]
 \centering
 \includegraphics[width=.7\linewidth]{groundTruth.eps}
+\vspace{-1em}
 \caption{Synthesized ground truth data. The black line depicts the
   path of IMU in 3D space, while the green dots represent 3D visual
   landmarks captured by the camera (blue).}
 \label{fig:groundtruth}
 \end{figure}
+
+We altered synthesized ground truth data to process measurements
+similar to those obtained in the real world. The accelerations
+measured by the IMU were altered with Gaussian noise of zero mean and
+$0.0196$ standard deviation, plus a bias modeled as random walk (with
+std $= 0.0042$). Likewise, ground truth angular velocities from the
+IMU were altered with Gaussian noise of zero mean and $0.0087$
+standard deviation. Gyroscope bias was also modeled as a random walk
+with standard deviation of $0.0001534$.\footnote{Accelerometer and
+  gyroscope noises were modeled following the specifications of the
+  Microstrain\textregistered\ 3DM-GX3\textregistered\ -45 IMU.}
+
+Some noise was also added to the 2D projections of the landmarks in
+the camera image. In this case we used zero-mean Gaussian noise with
+standard deviation of $1$. Note that we assumed we were able to
+distinguish between visual features, and did not tackle the problem of
+wrong landmark correspondences.
+
+\subsection{General performance}
+
+We initialized the UKF filter with the correct initial position
+$\bb{p}_I^W(0)$ of the IMU plus a random zero-mean Gaussian noise with
+standard deviation of $0.8$. The initial velocity $\bb{v}^W(0)$ and
+orientation $\overline{q}}_I^W(0)$ of the IMU were set with their
+  ground truth values plus zero-mean Gaussian noise of $0.3$ and
+  $0.0349$ standard deviations, respectively. The latter case
+  corresponds to about $8$ degrees of deviation, computed using
+  modified Rodrigues parameters (MRPs).
+
 
 
 \section{Future work}
