@@ -3,6 +3,8 @@
 %clc
 close all
 
+saveFlag = 0; % make 1 to save plot
+
 %% UKF parameters
 ukf_alpha = .01;
 ukf_beta = 2;
@@ -321,8 +323,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             xlabel('Time');
             %ylabel('Squared Error');
             title('Gyro Bias Error');
-            F=getframe(gcf);
-            imwrite(F.cdata,sprintf('plot/%03d.png',i));
+            if (saveFlag),
+                F=getframe(gcf);
+                imwrite(F.cdata,sprintf('plot/%03d.png',i));
+            end
             %subplot(4,3,[1, 4, 7, 10]);
             %F=getframe(gca);
             %imwrite(F.cdata,sprintf('motion/%03d.png',i));
@@ -330,7 +334,9 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             %pause
             %saveas(gcf,sprintf('plot/%03d.png',i));
             subplot(4,3,[1, 4, 7, 10]);
-            saveas(gca,sprintf('motion/%03d.png',i));
+            if (saveFlag),
+                saveas(gca,sprintf('motion/%03d.png',i));
+            end
             %print('-dpng','-r300','-opengl',sprintf('plot/%03d.png',i));
             
         end

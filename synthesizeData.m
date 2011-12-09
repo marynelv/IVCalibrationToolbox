@@ -92,9 +92,9 @@ pts_w = [pts_w; ones(1, numPoints)];
 
 
 %% Initialize data structures
-a_w = zeros(3,size(t));
-v_w = zeros(3,size(t));
-p_w = zeros(3,size(t));
+a_w = zeros(3,length(t));
+v_w = zeros(3,length(t));
+p_w = zeros(3,length(t));
 
 q_w_i = [ones(1,length(t)); zeros(3,length(t))];
 % qt = [ones(1,length(t)); zeros(3,length(t))];
@@ -164,9 +164,9 @@ for i = 2:length(t)
     %     qt(:,i) = quaternionproduct(qt(:,i), new_qt ./ norm(new_qt));
     %     vec(:,i) = quat_mult(quat_mult(q_w_i(:,i), [0 0 0 1]'), [q_w_i(1,i); -q_w_i(2:end,i)]);
     
-    x_w_i(:,i) = quaternionrotate(q_w_i(:,i), x_i);
-    y_w_i(:,i) = quaternionrotate(q_w_i(:,i), y_i);
-    z_w_i(:,i) = quaternionrotate(q_w_i(:,i), z_i);
+    x_w_i(:,i) = quaternionRotate(q_w_i(:,i), x_i);
+    y_w_i(:,i) = quaternionRotate(q_w_i(:,i), y_i);
+    z_w_i(:,i) = quaternionRotate(q_w_i(:,i), z_i);
     
 end
 T_w_i{i} = quaternion2matrix(q_w_i(:,i));
