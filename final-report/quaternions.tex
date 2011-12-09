@@ -1,0 +1,44 @@
+\subsection{Representing Rotations with Quaternions}
+
+As described in Kelly and Sukhatme \cite{2011:kelly:article}, the unscented
+Kalman filter updates the state by computing the barycentric mean of
+the sigma points. In general the barycentric mean of unit quaternions
+$\overline{q}_I^W$ and $\overline{q}_C^I$ will not lie on the unit
+sphere, and we require a different parametrization for their
+update. We make use of the technique called UnScented QUaternion Estimator, 
+or USQUE from \cite{crassidis2003unscented}.
+This technique represents rotations in the filter state vector as full 4 element quaternions
+but expresses the state covariance as a 3-by-3 matrix in modified Rodrigues parameters (MRPs). 
+The state covariance represents the uncertainly expressed in MRPs around the expected rotation.
+If we did not express state covariance using a 3 parameter representation, 
+it would result in a rank deficient covariance matrix since there are only 3 degrees of freedom in rotation.
+Similar to Euler's angles and all 3 parameter representations of rotation, MRPs exhibit singularities 
+at certain rotations. MRPs are singular at $360^\circ$ but since we are using the MRPs to
+express an error, this is not a problem since the error in rotation should never approach $360^\circ$.
+
+For small errors in rotation, the modified Rodrigues parameter $\delta \bb{e}$ is given as:
+\begin{align}
+\delta \bb{e}=\frac{\delta \bb{q}}{1+\delta q_0},
+\end{align}
+where $\delta \bb{q}$ and $\delta q_0$ are each the vector and scalar
+portion of the error quaternion. At time step $t_k$, we start off with
+a mean error quaternion of $^0\delta
+\bb{\hat{e}}_I^W(t_{k-1})=\bb{0}_{3 \times 1}$ and $^0\delta
+\bb{\hat{e}}_C^I=\bb{0}_{3 \times 1}$. The MRP part of the sigma
+points is computed $^j \bb{\hat{e}}_I^W(t_{k-1})$ in terms of these
+mean MRPs using \ref{eq_sigmapoints}, and corresponding quaternions
+are propagated as
+\begin{align}
+^j \hat{\overline{q}}_I^W(t_{k-1})=^j \delta \hat{\overline{q}}_I^W(t_{k-1}) \otimes \hat{\overline{q}}^{W+} (t_{k-1})
+\end{align}
+The sigma points are passed through the process model, and before
+computing the barycentric mean, the mean quaternion is divided out to
+get the error quaternion at $t_k$.
+\begin{align}
+^j \delta \hat{\overline{q}}_I^W(t_k)=^j \hat{\overline{q}}_I^W(t_k) \otimes \left( ^0 \hat{\overline{q}}_I^W(t_k)\right)^{-1}
+\end{align}
+The process of multiplying error vectors to get unit quaternions is
+repeated before passing the sigma points to the measurement model, and
+they are re-computed before obtaining the Kalman gain matrix. For the
+IMU-camera orientation $\overline{q}_C^I$, the error quaternions are
+used only when a measurement comes in.
