@@ -23,9 +23,7 @@
 
 In this project, we estimate the rotation and translation between a rigidly connected camera and IMU using an unscented Kalman filter. Calibrating a camera-IMU setup is the first step in sensor fusion research. We are interested in creating an open-source calibration toolbox that can be used as a starting point by sensor fusion enthusiasts. The unscented Kalman filter helps to propagate the state of our system through process and measurement models that incorporate rotation, which is non-linear.
 
-The state vector in our system consists of the camera-IMU rotation and translation, as well as the orientation and position of the IMU in the world coordinate system, the velocity in world space, the gravity vector, and the biases of the IMU's accelerometer and the gyroscope. The IMU-camera setup moves in the world space, and the camera images a set of world points with known locations in the world space. The imaged points form the measurement in our system. We predict the next state of the system from the current state by propagating a set of sigma points through the process model. We correct the state whenever a measurement is obtained from the camera.
-
-We have performed an initial set of experiments where we assume we know everything about the system except the translation between the camera and the IMU. We estimate the translation using a modified process model for translation alone, and we analyze our performance in the face of noise in the measurement of the imaged points and the velocity.
+The state vector in our system consists of the camera-IMU rotation and translation, as well as the orientation and position of the IMU in the world coordinate system, the velocity in world space, the gravity vector, and the biases of the IMU's accelerometer and the gyroscope. The IMU-camera setup moves in the world space, and the camera images a set of world points with known locations in the world space. The imaged points form the measurement in our system. We predict the next state of the system from the current state by propagating a set of sigma points through the process model. We correct the state whenever a measurement is obtained from the camera. We synthesize the data used in this project, and we report results from the unscented Kalman filter on the noise-augmented synthesized data.
 
 \input{related_work}
 
@@ -38,7 +36,6 @@ summarizes important aspects of the filtering process and some
 implementation details.
 
 \subsection{System State}
-
 In our system, we will ultimately estimate the world space position
 and orientation of the IMU, $\bb{p}_I^W(t)$ and
 ${\overline{q}}_I^W(t)$, the velocity of the IMU-camera setup in world
@@ -298,7 +295,7 @@ $0.0306$. Gravity was the only variable with different values along
 the diagonal of its state covariance matrix, having $1.7$, $1.7$, and
 $0.15$ standard deviations for its x, y, and z components,
 respectively. This difference accentuated the fact that estimation
-errors for gravity tend to occur more along the x and y dimentions, than z.
+errors for gravity tend to occur more along the x and y dimensions, than z.
 
 Figure \ref{fig:generalResults} shows the average estimation error for
 all state vector variables after 50 runs. Small constant errors were
