@@ -286,6 +286,26 @@ orientation $\overline{q}}_I^W(0)$ of the IMU were set with their
   deviation. These values were reasonable approximations to the real
   initial state of the system.
 
+The state covariance matrix was initialized as a diagonal matrix with
+standard deviations of $0.1$, $0.0437$, $0.5$ for the position,
+orientation, and velocity of the IMU. Accelerometer and gyroscope
+biases were also modeled with diagonal covariance matrices with
+standard deviations of $0.001$ and $0.02$, while the relative position
+and orientation of the IMU and the camera were assigned $0.001$ and
+$0.0306$. Gravity was the only variable with different values along
+the diagonal of its state covariance matrix, having $1.7$, $1.7$, and
+$0.15$ standard deviations for its x, y, and z components,
+respectively. This difference accentuated the fact that estimation
+errors for gravity tend to occur more along the x and y dimentions, than z.
+
+Figure \ref{fig:generalResults} shows the average estimation error for
+all state vector variables after 50 runs. Small constant errors were
+obtained in general, except for the accelerometer and the gyroscope
+biases. Bias errors tended to oscillate, and we attribute this
+behavior to the random walk model. Varying the state covariance matrix
+did not seem to reduce the oscillation behavior in general. 
+% Check previous argument!
+
 \begin{figure}[h!p]
 \centering
 \subfigure[Position error (m)]{
@@ -312,18 +332,33 @@ orientation $\overline{q}}_I^W(0)$ of the IMU were set with their
 \subfigure[Gyroscope bias error (deg/s)]{
   \includegraphics[width=0.4\linewidth]{experiment-GyroBias.png}
 }
-\caption{Estimation error averaged accross 50 runs}
+\caption{Estimation error averaged across 50 runs}
 \label{fig:generalResults}
 \end{figure}
 
+\subsection{Rigid body motion}
 
-\section{Future work}
-The next step in the project will be to expand our filter to estimate
-the full state vector. The most difficult part of this implementation
-will be the quaternion predication and correction steps within the
-Kalman filter. We are also developing a more complicated motion
-simulator to simulate the motion and field of view for a realistic
-camera-IMU system.
+In general, the IMU should experience accelerations and rotations
+along two axes for the filter to converge successfully
+\cite{2011:kelly:article}. Undesired filter behaviors were observed
+when this requirement was not met and, specially, when we increased
+the values of the state covariance matrix that corresponded to the
+relative position and orientation between the IMU and the camera. 
+A typical result of the filtering process in this scenario would be
+correcting for estimation errors by adjusting the distance between the
+two sensors more than desired, instead of changing the current
+position of the IMU in space. This would generate increasing
+correlated errors for $\bb{p}_I^W(t)$ and $\bb{p}_C^I$, as none of
+these variables would converge towards their real values.
+
+
+\section{Discussion and future work}
+%% The next step in the project will be to expand our filter to estimate
+%% the full state vector. The most difficult part of this implementation
+%% will be the quaternion predication and correction steps within the
+%% Kalman filter. We are also developing a more complicated motion
+%% simulator to simulate the motion and field of view for a realistic
+%% camera-IMU system.
 
 
 \bibliographystyle{plain}

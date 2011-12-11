@@ -16,10 +16,10 @@ for r=1:nRuns
     fprintf('%d',r);
     pqvtrgbbUKF
     expDistanceError = [expDistanceError distanceError'];
-    expOrientationError = [expOrientationError orientationError.*180/pi'];
+    expOrientationError = [expOrientationError orientationError'.*180/pi];
     expVelocityError = [expVelocityError velocityError'];
     expPicError = [expPicError picError'];
-    expQicError = [expQicError qicError.*180/pi'];
+    expQicError = [expQicError qicError'.*180/pi];
     expGravityError = [expGravityError gravityError'];
     expBiasAccelError = [expBiasAccelError biasAccelError'];
     expBiasGyroError = [expBiasGyroError biasGyroError'];
