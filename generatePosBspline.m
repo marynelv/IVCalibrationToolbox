@@ -39,8 +39,8 @@ while ~done
 end
 
 controlpts=pos;
-%controlpts=[controlpts;meanz*(1+5*randn(1,size(controlpts,2)))];
-controlpts=[controlpts;repmat(meanz,1,size(controlpts,2))];
+controlpts=[controlpts;meanz*(1+1*randn(1,size(controlpts,2)))];
+%controlpts=[controlpts;repmat(meanz,1,size(controlpts,2))];
 
 P=cubicSpline(controlpts,numpoints);
 %P=bezierCurve(controlpts,numpoints);

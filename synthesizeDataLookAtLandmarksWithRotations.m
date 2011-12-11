@@ -170,6 +170,21 @@ gyro_i_measured = w + total_gyro_noise;
 % figure, plot(t, total_accel_noise(1,:), 'r', t, total_accel_noise(2,:), 'g', t, total_accel_noise(3,:), 'b'), title('Accel noise');
 % figure, plot(t, total_gyro_noise(1,:), 'r', t, total_gyro_noise(2,:), 'g', t, total_gyro_noise(3,:), 'b'), title('Gyro noise');
 
+% std_dev_noise_accel = 0.1;
+% std_dev_bias_accel = 0;
+% std_dev_noise_gyro = 0.1;
+% 
+% bias_accel = zeros(size(a_i));
+% noise_accel = std_dev_noise_accel*randn(size(a_i));
+% accel_i_measured = a_i + bias_accel + noise_accel;
+% 
+% %w = repmat([0 0 0]', 1, length(t));
+% w=omega_i;
+% bias_gyro = zeros(size(w));
+% noise_gyro = std_dev_noise_gyro*randn(size(w));
+% gyro_i_measured = w + bias_gyro + noise_gyro;
+
+
 imuData = zeros(length(t), 31);
 imuData(:,3) = t;
 imuData(:,17:19) = gyro_i_measured';

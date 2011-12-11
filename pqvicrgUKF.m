@@ -54,22 +54,64 @@ C_q_w_i_0 = quaternion2matrix(iniQ);
 %iniG   = C_q_w_i_0(1:3,1:3)*g_i*9.81; % initial gravity in world frame
 %iniG=C_q_w_i_0(1:3,1:3)*(-gravity);
 iniG=-gravity+.5*randn(3,1);
+% expected_rad_error = 10 * pi / 180;
+% init_rad_error = 0.2* expected_rad_error;
+% err_quat = matrix2quaternion(rotx(init_rad_error)*roty(init_rad_error)*rotz(init_rad_error));
+% iniQ   = q_w_i(:,i);% + 0.02*rand(4,1);  % initial orientation in world frame
+% iniQ = iniQ ./ norm(iniQ);
+% iniV   = v_w(:,i);% + 4*rand(3,1);   % initial velocity in world frame
+% C_q_w_i_0 = quaternion2matrix(iniQ);
+% %iniG   = C_q_w_i_0(1:3,1:3)*g_i*9.81; % initial gravity in world frame
+% %iniG=C_q_w_i_0(1:3,1:3)*(-gravity);
+% iniG=-gravity+.1*randn(3,1);
 %iniG=-gravity;
 
 %x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c)]; % easy as ground truth location
+% x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c); iniG]; % easy as ground truth location
+% xstart=x;
+% 
+% Ppos = diag([.5 .5 .5]);
+% Pori = (10 * pi / 180)* eye(3);
+% Pvel = diag([0.5 0.5 0.5]);
+% Ppic=diag([.5 .5 .5]);
+% Pqic=(10*pi/180)*eye(3);
+% Pgra = eye(3)*.1; % just very small, though ideally it would be zero
+% %P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
+% P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra);
+% Pstart=P;
 
-x = [p_w(:,i); q_w_i(:,i); v_w(:,i-1); p_i_c+.1*randn(3,1); quaternionproduct(err_quat,q_i_c); iniG]; % easy as ground truth location
-xstart=x;
 
-Ppos = diag([.5 .5 .5]);
-Pori = (10 * pi / 180)* eye(3);
-Pvel = diag([0.5 0.5 0.5]);
-Ppic=diag([.5 .5 .5]);
-Pqic=(10*pi/180)*eye(3);
-Pgra = eye(3)*.1; % just very small, though ideally it would be zero
-%P = [Ppos zeros(3, 6); zeros(3) Pori zeros(3); zeros(3,6) Pvel];
+mrpStd = @(deg) tan(deg*pi/720); % mrp error = tan((deg*pi)/(4*180))
+
+iniPos = p_w(:,i) + rand(3,1).*(0.08^2);   % initial position in world frame
+iniV   = v_w(:,i-1) + rand(3,1).*(0.3^2);  % initial velocity in world frame
+iniQMRPerror = rand(3,1).*(mrpStd(8)^2);   % 8 deg of error for initial orientation 
+norm_mrp_error = sqrt(sum(iniQMRPerror.^2, 1));
+dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
+iniQerror = [ dq0; bsxfun(@times,(1+dq0),iniQMRPerror)];
+iniQ   = quaternionproduct(iniQerror,q_w_i(:,i));  % initial orientation in world frame
+iniQ = iniQ ./ norm(iniQ); 
+
+iniP_i_c = p_i_c+.1*randn(3,1);      
+iniQicMRPerror = rand(3,1).*(mrpStd(5)^2);   % 5 deg of error for initial imu-cam orientation 
+norm_mrp_error = sqrt(sum(iniQicMRPerror.^2, 1));
+dq0 = (1 - norm_mrp_error) ./ (1 + norm_mrp_error);
+iniQicerror = [ dq0; bsxfun(@times,(1+dq0),iniQicMRPerror)];
+iniQ_i_c   = quaternionproduct(iniQicerror,q_i_c);  % initial orientation in world frame
+iniQ_i_c = iniQ_i_c ./ norm(iniQ_i_c);
+
+iniG=-gravity+.1*randn(3,1);
+x = [iniPos; iniQ; iniV; iniP_i_c; iniQ_i_c; iniG;]; 
+
+Ppos = eye(3).*(.1^2);
+Pori = eye(3).*(mrpStd(10)^2);
+Pvel = eye(3).*(.5^2);
+Ppic=eye(3).*1e-4;
+Pqic=eye(3).*(mrpStd(7)^2);
+Pgra = diag([1.7 1.7 0.15].^2); % just very small, though ideally it would be zero
+Pba = eye(3)*0.001^2;
+Pbg = eye(3)*0.02^2;
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra);
-Pstart=P;
 
 %% Initialize storage matrices and figure
 numCamMeasurements = size(observed_pts_c, 2);
@@ -263,7 +305,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(distanceError);
             axis([0 numPoses 0 maxErr]);
     %        xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Distance Error');
 
             subplot(6,2,4);
@@ -271,7 +313,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(velocityError);
             axis([0 numPoses 0 maxErr]);
     %        xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Velocity Error');
 
             subplot(6,2,6);
@@ -279,7 +321,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(orientationError);
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Orientation Error');
             
             subplot(6,2,8);
@@ -287,7 +329,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(picError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('IMU-Camera Translation Error');
 
             subplot(6,2,10);
@@ -295,7 +337,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(qicError)+.1;
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('IMU-Camera Rotation Error');
             
             subplot(6,2,12);
@@ -303,12 +345,17 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
             maxErr = max(gravityError);
             axis([0 numPoses 0 maxErr]);
             xlabel('Time');
-            ylabel('Squared Error');
+           % ylabel('Squared Error');
             title('Gravity Error');
             
-            %F=getframe(gcf);
-            %imwrite(F.cdata,sprintf('plot/%03d.png',i));
+            F=getframe(gcf);
+            imwrite(F.cdata,sprintf('plot/%03d.png',i));
     
+            %saveas(gcf,sprintf('plot/%03d.png',i));
+            %subplot(6,2,[1, 3, 5, 7, 9]);
+            %saveas(gca,sprintf('motion/%03d.png',i));            
+            %print('-dpng','-r300','-opengl',sprintf('plot/%03d.png',i));
+            
             %pause
         end
     
