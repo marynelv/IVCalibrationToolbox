@@ -1,7 +1,7 @@
 \documentclass[letterpaper]{article}
 \title{
-  IVCalib: A Toolbox to Calibrate Between a Camera and an IMU\\
-  \Large{16-831 HW3: Fall 2011}
+  UKF estimate of IMU-Camera Calibration\\
+  \Large{16-831 Final Project: Fall 2011}
 }
 \author{Andrew Chambers, Natasha Kholgade, and Marynel V\'azquez}
 \date{}
@@ -227,25 +227,27 @@ state vector. For brevity, we only report results obtained for the
 state vector presented in equation (\ref{eq:UKF-state}).
 
 We modeled a sensor beam of $30$ cm in length, with the camera and the
-IMU positioned at its extremes. We generated synthetic motion data for
-the IMU as explained in Section \ref{to be defined}, with a maximum
+IMU positioned at its extremes. We generated $10$ seconds of synthetic
+motion data for the IMU at a sampling rate of $100$ Hz, as explained
+in Section \ref{to be defined}. We limited the motion to a maximum
 linear acceleration of $1.23$ m/s$^2$, and maximum angular velocity of
-$0.55$ rad/s (approx. $31^\circ$/s).  Then we placed a total of 30
-visual landmarks near the path of the beam, with the constraint that
-they should almost lie in a plane.\footnote{Though the planar
+$0.55$ rad/s (approx. $31^\circ$/s).  Then, we placed a total of 30
+visual landmarks near the path of the beam with the constraint that
+they should almost lie in a plane,\footnote{Though the planar
   constraint is not necessary for the UKF filter to work, we wanted to
   mimic a real target-based calibration scenario
-  \cite{2011:kelly:article}.}  Figure \ref{fig:groundtruth} shows the
-synthesized path of the IMU, as well as the set of 3D landmarks that
-we used as ground truth.
-
+  \cite{2011:kelly:article}.} and projected them into the camera
+image.  Figure \ref{fig:groundtruth} shows the synthesized path of the
+IMU, as well as the set of 3D landmarks that we used as ground truth.
 \begin{figure}[h!p]
 \centering
 \includegraphics[width=.7\linewidth]{groundTruth.eps}
-\vspace{-1em}
+\vspace{-0.5em}
 \caption{Synthesized ground truth data. The black line depicts the
   path of IMU in 3D space, while the green dots represent 3D visual
-  landmarks captured by the camera (blue).}
+  landmarks captured by the camera (blue). The gap between the camera
+  and the IMU path is due to the $30$ cm beam that keeps the sensors
+  rigidly attached.}
 \label{fig:groundtruth}
 \end{figure}
 
@@ -261,8 +263,8 @@ with standard deviation of $0.0001534$.\footnote{Accelerometer and
   Microstrain\textregistered\ 3DM-GX3\textregistered\ -45 IMU.}
 
 Some noise was also added to the 2D projections of the landmarks in
-the camera image. In this case we used zero-mean Gaussian noise with
-standard deviation of $1$. Note that we assumed we were able to
+the camera image. We used zero-mean Gaussian noise with
+standard deviation of $1$ in this case. Note that we assumed we were able to
 distinguish between visual features, and did not tackle the problem of
 wrong landmark correspondences.
 
@@ -273,14 +275,55 @@ $\bb{p}_I^W(0)$ of the IMU plus a random zero-mean Gaussian noise with
 standard deviation of $0.8$. The initial velocity $\bb{v}^W(0)$ and
 orientation $\overline{q}}_I^W(0)$ of the IMU were set with their
   ground truth values plus zero-mean Gaussian noise of $0.3$ and
-  $0.0349$ standard deviations, respectively. The latter case
-  corresponds to about $8$ degrees of deviation, computed using
-  modified Rodrigues parameters (MRPs).
+  $0.0349$ standard deviations, respectively. The latter corresponds
+  to about $8$ degrees of deviation, computed using modified Rodrigues
+  parameters (MRPs). The initial values of the relative position
+  $\bb{p}_C^I$ and orientation $\overline{q}_C^I$ of the IMU and the
+  camera were altered with zero-mean Gaussian noise with standard
+  deviations of $1$ and $0.0218$ (approximately $5$ degrees). Finally,
+  gravity $\bb{g}^W(0)$ and the biases $\bb{b}_g(0)$ and $\bb{b}_a(0)$
+  were altered with Gaussian noise of zero mean and $0.1$ standard
+  deviation. These values were reasonable approximations to the real
+  initial state of the system.
 
+\begin{figure}[h!p]
+\centering
+\subfigure[Squared position error (m)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Distance.png}
+}
+\subfigure[Squared orientation error (degrees)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Orientation.png}
+}
+\subfigure[Squared velocity error (m/s)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Velocity.png}
+}
+\subfigure[Squared gravity error (m/s$^2$)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Gravity.png}
+}
+\subfigure[Squared IMU-Camera distance error (m)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Pic.png}
+}
+\subfigure[Squared IMU-Camera orientation error (deg)]{
+  \includegraphics[width=0.4\linewidth]{experiment-Qic.png}
+}
+\subfigure[Squared acclerometer bias error (m/s$^2$)]{
+  \includegraphics[width=0.4\linewidth]{experiment-AccelBias.png}
+}
+\subfigure[Squared gyroscope bias error (deg/s)]{
+  \includegraphics[width=0.4\linewidth]{experiment-GyroBias.png}
+}
+\caption{Squared estimation error averaged accross 50 runs}
+\label{fig:generalResults}
+\end{figure}
 
 
 \section{Future work}
-The next step in the project will be to expand our filter to estimate the full state vector. The most difficult part of this implementation will be the quaternion predication and correction steps within the Kalman filter. We are also developing a more complicated motion simulator to simulate the motion and field of view for a realistic camera-IMU system.
+The next step in the project will be to expand our filter to estimate
+the full state vector. The most difficult part of this implementation
+will be the quaternion predication and correction steps within the
+Kalman filter. We are also developing a more complicated motion
+simulator to simulate the motion and field of view for a realistic
+camera-IMU system.
 
 
 \bibliographystyle{plain}

@@ -18,11 +18,14 @@ end
 
 meanz=mean(landmarks(3,:),2);
 
-figure(20); plot(landmarks(1,:),landmarks(2,:),'b.');
+%figure(20); 
+figure('Position',[20 20 900 600]);
+scatter(landmarks(1,:),landmarks(2,:),16, [.2,.5,0], 'filled');
 mx=max(landmarks,[],2);
 mn=min(landmarks,[],2);
 axis([mn(1)-10,mx(1)+10,mn(2)-10,mx(2)+10]);
 axis equal;
+set(gca,'Color','k');
 
 hold on;
 done=false;
@@ -43,7 +46,7 @@ P=cubicSpline(controlpts,numpoints);
 %P=bezierCurve(controlpts,numpoints);
 
 hold on; 
-plot(P(1,:),P(2,:),'g-');
+plot(P(1,:),P(2,:),'m-');
 
 %subplot(1,2,2); plot3(landmarks(1,:),landmarks(2,:),landmarks(3,:),'b.'); hold on; 
 %plot3(P(1,:),P(2,:),P(3,:),'g-'); axis vis3d; axis equal;

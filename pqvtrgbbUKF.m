@@ -3,6 +3,9 @@
 %clc
 close all
 
+if (~exist('plotFlag')),
+    plotFlag = 1; % make 1 to plot
+end
 saveFlag = 0; % make 1 to save plot
 
 %% UKF parameters
@@ -87,8 +90,8 @@ Pbg = eye(3)*0.02^2;
 P=blkdiag(Ppos,Pori,Pvel,Ppic,Pqic,Pgra,Pba,Pbg);
 
 %% Initialize storage matrices and figure
-numCamMeasurements = size(observed_pts_c, 2);
-numImuMeasurements = length(imuData);
+numCamMeasurements = size(observed_pts_c, 2) - j - 1;
+numImuMeasurements = length(imuData) - i - 1;
 numPoses = numImuMeasurements + numCamMeasurements;
 accumPoses = zeros(3,numPoses);
 accumQuat = NaN * ones(4,numPoses);
@@ -115,9 +118,10 @@ accum_qic_estim = zeros(4,numPoses);
 accum_pwc_estim = zeros(3,numPoses);
 accum_qwc_estim = zeros(4,numPoses);
 
-h = figure('Name','Position, Orientation and Velocity Estimation', ...
-           'NumberTitle','off','Position',[10 10 1000 600]);
-
+if plotFlag == 1,
+    h = figure('Name','Position, Orientation and Velocity Estimation', ...
+               'NumberTitle','off','Position',[10 10 1000 600]);
+end
 
 %% Begin Kalman filter
 count = 1;
@@ -238,7 +242,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         
         count = count + 1;
 
-        if mod(count, 10) == 1
+        if mod(count, 10) == 1 && plotFlag == 1
             figure(h);
             clf
 
