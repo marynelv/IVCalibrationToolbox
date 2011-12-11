@@ -21,9 +21,9 @@
 
 \section{Introduction}
 
-In this project, we estimate the rotation and translation between a rigidly connected camera and IMU using an unscented Kalman filter. Calibrating a camera-IMU setup is the first step in sensor fusion research. We are interested in creating an open-source calibration toolbox that can be used as a starting point by sensor fusion enthusiasts. The unscented Kalman filter helps to propagate the state of our system through process and measurement models that incorporate rotation, which is non-linear.
+In this project, we estimate the calibration (relative rotation and translation) between a rigidly connected camera and IMU using an unscented Kalman filter. Calibrating a camera-IMU setup is the first step in sensor fusion research. Our filter and motion simulator are the first steps in creating an open-source calibration toolbox for sensor fusion enthusiasts. 
 
-The state vector in our system consists of the camera-IMU rotation and translation, as well as the orientation and position of the IMU in the world coordinate system, the velocity in world space, the gravity vector, and the biases of the IMU's accelerometer and the gyroscope. The IMU-camera setup moves in the world space, and the camera images a set of world points with known locations in the world space. The imaged points form the measurement in our system. We predict the next state of the system from the current state by propagating a set of sigma points through the process model. We correct the state whenever a measurement is obtained from the camera. We synthesize the data used in this project, and we report results from the unscented Kalman filter on the noise-augmented synthesized data.
+The state vector in our unscented Kalman filter (UKF) consists of the camera-to-IMU rotation and translation, as well as the orientation and position of the IMU in the world coordinate system, the velocity in world space, the gravity vector, and the biases of the IMU's accelerometer and the gyroscope. The IMU-camera setup moves in the world space, and the camera images a set of world points with known locations in the world space. The imaged points form the measurement in our system. We predict the next state of the system from the current state by propagating a set of sigma points and noisy inertial measurements through the process model. We correct the state whenever a measurement is obtained from the camera. We synthesize the data used in this project, and we report results from the unscented Kalman filter on the noisy synthesized data.
 
 \input{related_work}
 
@@ -52,8 +52,8 @@ variables.
 \label{eq:UKF-state}
 \end{equation}
 
-The process model uses IMU measurements as control inputs along the
-vein of Kelly and Sukhatme \cite{2011:kelly:article}. We model the accelerometer and
+The process model uses IMU measurements as control inputs along the same
+vein as Kelly and Sukhatme \cite{2011:kelly:article}. We model the accelerometer and
 gyroscope biases as Gaussian random walk processes driven by zero mean
 noise $\bb{n}_{aw}$ and $\bb{n}_{gw}$, with covariances $\bb{Q}_{aw}$
 and $\bb{Q}_{gw}$, and we model their additive noise by zero mean
