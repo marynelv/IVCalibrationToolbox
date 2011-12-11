@@ -166,6 +166,7 @@ The Kalman gain matrix is computed and used to compute the \emph{a
 \input{quaternions}
 
 \section{Data synthesis}
+\label{Datasynth}
 To test our system, we simulated the movement of the IMU-camera system. We used noise-augmented versions of synthesized camera projections and IMU readings as input to the unscented Kalman filter. [[Andrew's synthesis goes here]].
 
 We noticed that the above method produces a camera path where the camera does not consistently look at the points. The camera image plane might become parallel to the landmarks in world space, in which case, the points projections would lie at infinity. The camera may unrealistically look away from the points, or it may go too far from them. We needed a method that would produce a reasonable camera path, where the camera is within reach of the landmarks, and is consistently looking at them. In our second synthesis method, we manually defined control points of a Bezier curve around the $3D$ points, and we generated a smooth camera path using the Bezier curve. This path defined the position of the camera, $\bb{p}_C^W(t)$ at different instants of time. To specify the orientation $\hat{\overline{q}}_C^W(t)$, we computed a look at vector $v_{lookat}$ from the camera position $\bb{p}_C^W$ to the mean of the landmarks, $\bb{p}_{\mu}^C$. We defined an up vector, $v_{up}$ to lie along the $z$-axis by default, and we computed a third orthogonal vector, $v_{orth}=v_{lookat} \times v_{up}$. We computed the orientation in matrix form as $\begin{bmatrix}v_{orth} &v_{up}& v_{lookat}\end{bmatrix}$, and we converted it to the quaternion $\hat{\overline{q}}_C^W(t)$. Figure \ref{synthcontrolpts} shows the control points specified for the camera path, and Figure \ref{synthpath} shows the camera path as it looks at the points, the IMU attached rigidly to the camera, and the projected points in the camera's image plane.
@@ -173,11 +174,13 @@ We noticed that the above method produces a camera path where the camera does no
 \centering
 \includegraphics[width=.5\linewidth]{synth_controlpts.eps}
 \caption{Top view of landmarks and control points used to generate camera path}
+\label{synthcontrolpts}
 \end{figure}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{synth_path.eps}
 \caption{Left: Camera path in the world space in black, landmarks in green, IMU-camera setup in blue, camera rotation matrix (look-at, up, and orthogonal vectors) in red. Right: projections of the landmarks in the image plane of the camera.}
+\label{synthpath}
 \end{figure}
 \section{Results}
 
@@ -242,8 +245,8 @@ state vector presented in equation (\ref{eq:UKF-state}).
 
 We modeled a sensor beam of $30$ cm in length, with the camera and the
 IMU positioned at its extremes. We generated $10$ seconds of synthetic
-motion data for the IMU at a sampling rate of $100$ Hz, as explained
-in Section \ref{to be defined}. We limited the motion to a maximum
+motion data, as explained
+in Section \ref{Datasynth} for the IMU at a sampling rate of $100$ Hz. We limited the motion to a maximum
 linear acceleration of $1.23$ m/s$^2$, and maximum angular velocity of
 $0.55$ rad/s (approx. $31^\circ$/s).  Then, we placed a total of 30
 visual landmarks near the path of the beam with the constraint that
@@ -374,9 +377,9 @@ these variables would converge towards their real values.
 %% Kalman filter. We are also developing a more complicated motion
 %% simulator to simulate the motion and field of view for a realistic
 %% camera-IMU system.
-We have implemented an IMU-camera calibration system using an unscented Kalman filter. We estimate rotation and translation between the IMU and camera, as well as the position and orientation of the IMU in world space, the velocity of the system in the world, the gravity vector, and the biases of the accelerometer and gyroscope. As input we take in points in world space with known locations (as on a target), and measurements of linear acceleration and angular velocity from the IMU.
+We have implemented an IMU-camera calibration system using an unscented Kalman filter. We estimate rotation and translation between the IMU and camera, as well as the position and orientation of the IMU in world space, the velocity of the system in the world, the gravity vector, and the biases of the accelerometer and gyroscope. As input we take in points in world space with known locations (as on a target), and measurements of linear acceleration and angular velocity from the IMU. We have tested our filter with data generated synthetically and augmented with varying amounts of noise. 
 
-We have tested our filter with data generated synthetically and augmented with varying amounts of noise. An extension of our filter would apply to real data as well, in which case we track points in the camera images. 
+Our current synthesis either allows smooth acceleration of the IMU, or the realistic camera motion (with the camera looking at the landmarks) but not necessarily both for some types of paths. When the camera path is generated using Bezier curves, for some paths, the IMU acceleration may not be smooth. The camera may suddenly change orientation, causing a sudden jump in the IMU's path. This jump throws off our filter's estimates. Future work includes generating more diverse camera paths such that the IMU's acceleration is smooth. Future work also includes applying the filter to real data obtained from IMU-camera setups or devices such as the iPhone. 
 
 \bibliographystyle{plain}
 \bibliography{IVCalib-FinalReport}
