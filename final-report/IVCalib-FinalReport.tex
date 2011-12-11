@@ -165,6 +165,20 @@ The Kalman gain matrix is computed and used to compute the \emph{a
 
 \input{quaternions}
 
+\section{Data synthesis}
+To test our system, we simulated the movement of the IMU-camera system. We used noise-augmented versions of synthesized camera projections and IMU readings as input to the unscented Kalman filter. [[Andrew's synthesis goes here]].
+
+We noticed that the above method produces a camera path where the camera does not consistently look at the points. The camera image plane might become parallel to the landmarks in world space, in which case, the points projections would lie at infinity. The camera may unrealistically look away from the points, or it may go too far from them. We needed a method that would produce a reasonable camera path, where the camera is within reach of the landmarks, and is consistently looking at them. In our second synthesis method, we manually defined control points of a Bezier curve around the $3D$ points, and we generated a smooth camera path using the Bezier curve. This path defined the position of the camera, $\bb{p}_C^W(t)$ at different instants of time. To specify the orientation $\hat{\overline{q}}_C^W(t)$, we computed a look at vector $v_{lookat}$ from the camera position $\bb{p}_C^W$ to the mean of the landmarks, $\bb{p}_{\mu}^C$. We defined an up vector, $v_{up}$ to lie along the $z$-axis by default, and we computed a third orthogonal vector, $v_{orth}=v_{lookat} \times v_{up}$. We computed the orientation in matrix form as $\begin{bmatrix}v_{orth} &v_{up}& v_{lookat}\end{bmatrix}$, and we converted it to the quaternion $\hat{\overline{q}}_C^W(t)$. Figure \ref{synthcontrolpts} shows the control points specified for the camera path, and Figure \ref{synthpath} shows the camera path as it looks at the points, the IMU attached rigidly to the camera, and the projected points in the camera's image plane.
+\begin{figure}[t]
+\centering
+\includegraphics[width=.5\linewidth]{synth_controlpts.eps}
+\caption{Top view of landmarks and control points used to generate camera path}
+\end{figure}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{synth_path.eps}
+\caption{Left: Camera path in the world space in black, landmarks in green, IMU-camera setup in blue, camera rotation matrix (look-at, up, and orthogonal vectors) in red. Right: projections of the landmarks in the image plane of the camera.}
+\end{figure}
 \section{Results}
 
 %% We decided to implement the filter progressively given the complexity
@@ -273,7 +287,7 @@ wrong landmark correspondences.
 We initialized the UKF filter with the correct initial position
 $\bb{p}_I^W(0)$ of the IMU plus a random zero-mean Gaussian noise with
 standard deviation of $0.8$. The initial velocity $\bb{v}^W(0)$ and
-orientation $\overline{q}}_I^W(0)$ of the IMU were set with their
+orientation $\overline{q}_I^W(0)$ of the IMU were set with their
   ground truth values plus zero-mean Gaussian noise of $0.3$ and
   $0.0349$ standard deviations, respectively. The latter corresponds
   to about $8$ degrees of deviation, computed using modified Rodrigues
@@ -360,7 +374,9 @@ these variables would converge towards their real values.
 %% Kalman filter. We are also developing a more complicated motion
 %% simulator to simulate the motion and field of view for a realistic
 %% camera-IMU system.
+We have implemented an IMU-camera calibration system using an unscented Kalman filter. We estimate rotation and translation between the IMU and camera, as well as the position and orientation of the IMU in world space, the velocity of the system in the world, the gravity vector, and the biases of the accelerometer and gyroscope. As input we take in points in world space with known locations (as on a target), and measurements of linear acceleration and angular velocity from the IMU.
 
+We have tested our filter with data generated synthetically and augmented with varying amounts of noise. An extension of our filter would apply to real data as well, in which case we track points in the camera images. 
 
 \bibliographystyle{plain}
 \bibliography{IVCalib-FinalReport}
