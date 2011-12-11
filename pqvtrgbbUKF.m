@@ -117,10 +117,16 @@ accum_pic_estim = zeros(3,numPoses);
 accum_qic_estim = zeros(4,numPoses);
 accum_pwc_estim = zeros(3,numPoses);
 accum_qwc_estim = zeros(4,numPoses);
+accum_biasaccel_estim = zeros(3,numPoses);
+accum_biasgyro_estim = zeros(3,numPoses);
 
 if plotFlag == 1,
     h = figure('Name','Position, Orientation and Velocity Estimation', ...
                'NumberTitle','off','Position',[10 10 1000 600]);
+    h1 = figure('Name', 'Gyro Bias', ...
+                'NumberTitle', 'off', 'Position',[50 50 500 300]);
+    h2 = figure('Name', 'Accel Bias', ...
+                'NumberTitle', 'off', 'Position',[50 50 500 300]);
 end
 
 %% Begin Kalman filter
@@ -216,6 +222,7 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
     
     if (i < numImuMeasurements)
         
+        
         %% Distance error
         distanceError(1,count) = norm(x(1:3) - p_w(:,i-1));
         velocityError(1,count) = norm(x(8:10) - v_w(:,i-1));
@@ -238,7 +245,10 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
         accum_qic_estim(:,count)=x(14:17);
         
         accum_qwc_estim(:,count)=rotation2quaternion(quaternion2rotation(accum_qwi_estim(:,count))*quaternion2rotation(accum_qic_estim(:,count)));
-        accum_pwc_estim(:,count)=accum_pwi_estim(:,count)+quaternion2rotation(accum_qwi_estim(:,count))*accum_pic_estim(:,count);
+        accum_pwc_estim(:,count)=accum_pwi_estim(:,count)+quaternion2rotation(accum_qwi_estim(:,count))*accum_pic_estim(:,count);        
+        
+        accum_biasaccel_estim(:,count) = x(21:23);
+        accum_biasgyro_estim(:,count) = x(24:26);
         
         count = count + 1;
 
@@ -342,6 +352,37 @@ while (i <= numImuMeasurements && j <= numCamMeasurements )
                 saveas(gca,sprintf('motion/%03d.png',i));
             end
             %print('-dpng','-r300','-opengl',sprintf('plot/%03d.png',i));
+            
+            
+            figure(h1);
+            clf
+            subplot(1,2,1);
+            hold on;
+            plot(1:i-1,bias_gyro(1,1:i-1),'r-');
+            plot(1:i-1,bias_gyro(2,1:i-1),'g-');
+            plot(1:i-1,bias_gyro(3,1:i-1),'b-');
+            title('Real Gyro Bias');
+            subplot(1,2,2);
+            hold on;
+            plot(1:count,accum_biasgyro_estim(1,1:count),'r-');
+            plot(1:count,accum_biasgyro_estim(2,1:count),'g-');
+            plot(1:count,accum_biasgyro_estim(3,1:count),'b-');
+            title('Estimated Gyro Bias');
+            
+            figure(h2);
+            clf
+            subplot(1,2,1);
+            hold on;
+            plot(1:i-1,bias_accel(1,1:i-1),'r-');
+            plot(1:i-1,bias_accel(2,1:i-1),'g-');
+            plot(1:i-1,bias_accel(3,1:i-1),'b-');
+            title('Real Accel Bias');
+            subplot(1,2,2);
+            hold on;
+            plot(1:count,accum_biasaccel_estim(1,1:count),'r-');
+            plot(1:count,accum_biasaccel_estim(2,1:count),'g-');
+            plot(1:count,accum_biasaccel_estim(3,1:count),'b-');
+            title('Estimated Accel Bias');
             
         end
     
